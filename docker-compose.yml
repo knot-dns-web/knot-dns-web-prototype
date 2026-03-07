@@ -1,21 +1,34 @@
 services:
-  app:
+  backend:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: src/backend/Dockerfile
     ports:
       - "8080:80"
       - "443:443"
       - "53:53"
     volumes:
-      - ./src:/app/src
+      - ./src/backend:/app/src
       - vscode-extensions:/run/.vscode-server/extensions
       - knot-sock:/run/knot
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - KNOT_SOCKET=/run/knot/knot.sock
     entrypoint: /app/entrypoint.sh
-
+  frontend:
+    build:
+      context: src/frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/frontend/src:/app/src
+      - /app/src/node_modules
+      - /app/src/.next
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8080
+    entrypoint: /app/entrypoint.sh
 volumes:
   vscode-extensions:
   knot-sock:
