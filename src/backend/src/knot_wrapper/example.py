@@ -2,10 +2,10 @@ from typing import Any
 import threading
 import os
 
-from .implementation.asynchronous.service import *
+from .implementation.synchronous import *
 from .transaction import get_knot_config_transaction, get_knot_zone_transaction, get_knot_connection, set_knot_connection_path
 
-from .implementation.asynchronous.service.processor import global_processor
+# from .implementation.asynchronous.processor import global_processor
 
 default_knot_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
 
@@ -23,11 +23,13 @@ def add_zone(zone_name: str):
     with get_knot_connection() as connection:
         with get_knot_config_transaction(connection) as transaction:
             transaction.set("zone", zone_name)
+            transaction.commit()
 
 def remove_zone(zone_name: str):
     with get_knot_connection() as connection:
         with get_knot_config_transaction(connection) as transaction:
             transaction.unset("zone", zone_name)
+            transaction.commit()
 
 def get_all_records():
     with get_knot_connection() as connection:
@@ -39,11 +41,13 @@ def add_record(zone_name: str, owner: str, rtype: str, ttl: str, data: str):
     with get_knot_connection() as connection:
         with get_knot_zone_transaction(connection, zone_name) as transaction:
             transaction.set(zone_name, owner, rtype, ttl, data)
+            transaction.commit()
 
 def remove_record(zone_name: str, owner: str, rtype: str):
     with get_knot_connection() as connection:
         with get_knot_zone_transaction(connection, zone_name) as transaction:
             transaction.unset(zone_name, owner, rtype)
+            transaction.commit()
 
 menu_choice = \
 """
@@ -56,8 +60,8 @@ Menu
 6. Remove record
 """
 
-def start_processor():
-    global_processor.run()
+# def start_processor():
+#     global_processor.run()
 
 def menu():
     while True:
@@ -118,7 +122,7 @@ def main():
     thread = threading.Thread(target=menu)
     thread.start()
 
-    start_processor()
+    # start_processor()
 
 if __name__ == "__main__":
     main()

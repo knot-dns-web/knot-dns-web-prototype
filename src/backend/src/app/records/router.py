@@ -27,7 +27,7 @@ def create_record(record: RecordCreate):
         raise HTTPException(status_code=400, detail=str(e))
     
 
-@router.delete("/")
+@router.delete("/{zone}/{owner}/{rtype}")
 def delete_record(zone: str, owner: str, rtype: str):
     try:
         service.delete_record(zone, owner, rtype)
