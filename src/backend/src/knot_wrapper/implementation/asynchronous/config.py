@@ -23,6 +23,7 @@ class KnotConfigTransactionMTImpl(KnotConfigTransaction):
 
     def open(self):
         self.transaction_write_buffer.clear()
+        super().open()
     
     def commit(self):
         global global_knot_config_transaction_processor
@@ -52,8 +53,11 @@ class KnotConfigTransactionMTImpl(KnotConfigTransaction):
         future = global_knot_config_transaction_processor.add_command_batch(command_batch)
         future.result()
 
+        super().commit()
+
     def rollback(self):
         self.transaction_write_buffer.clear()
+        super().rollback()
 
     def get(
         self,

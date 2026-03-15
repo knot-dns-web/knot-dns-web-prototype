@@ -24,32 +24,38 @@ class KnotConnectionImpl(KnotConnection):
         return self.ctl
 
 class KnotZoneTransactionImpl(KnotZoneTransaction):
-    def __init__(self, connection: KnotConnection):
-        super().__init__(connection, None)
+    def __init__(self, connection: KnotConnection, zone_name: str | None = None):
+        super().__init__(connection, zone_name)
 
     def open(self):
         ctl = self.connection.get_ctl()
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-begin")
+        ctl.send_block(cmd="zone-begin", zone=self.zone_name)
         ctl.receive_block()
+
+        super().open()
     
     def commit(self):
         ctl = self.connection.get_ctl()
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-commit")
+        ctl.send_block(cmd="zone-commit", zone=self.zone_name)
         ctl.receive_block()
+
+        super().commit()
 
     def rollback(self):
         ctl = self.connection.get_ctl()
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-abort")
+        ctl.send_block(cmd="zone-abort", zone=self.zone_name)
         ctl.receive_block()
+
+        super().rollback()
     
     def get(
         self,
@@ -119,6 +125,8 @@ class KnotConfigTransactionImpl(KnotConfigTransaction):
         
         ctl.send_block(cmd="conf-begin")
         ctl.receive_block()
+
+        super().open()
     
     def commit(self):
         ctl = self.connection.get_ctl()
@@ -128,6 +136,8 @@ class KnotConfigTransactionImpl(KnotConfigTransaction):
         ctl.send_block(cmd="conf-commit")
         ctl.receive_block()
 
+        super().commit()
+
     def rollback(self):
         ctl = self.connection.get_ctl()
         if ctl is None:
@@ -135,6 +145,8 @@ class KnotConfigTransactionImpl(KnotConfigTransaction):
         
         ctl.send_block(cmd="conf-abort")
         ctl.receive_block()
+
+        super().rollback()
 
     def get(
         self,
@@ -195,3 +207,4 @@ class KnotConfigTransactionImpl(KnotConfigTransaction):
 
 set_knot_config_transaction_impl(KnotConfigTransactionImpl)
 set_knot_zone_transaction_impl(KnotZoneTransactionImpl)
+set_knot_ctl_transaction_impl(KnotConnectionImpl)

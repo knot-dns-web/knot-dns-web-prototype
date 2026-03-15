@@ -25,6 +25,7 @@ class KnotZoneTransactionMTImpl(KnotZoneTransaction):
 
     def open(self):
         self.transaction_write_buffer.clear()
+        super().open()
     
     def __try_buffer_versions__(self):
         global global_versions_controller
@@ -96,8 +97,11 @@ class KnotZoneTransactionMTImpl(KnotZoneTransaction):
         #    self.__try_buffer_versions__()
         #    self.__update_buffer_versions__()
 
+        super().commit()
+
     def rollback(self):
         self.transaction_write_buffer.clear()
+        super().commit()
 
     def get(
         self,
