@@ -1,4 +1,22 @@
 services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:10000:5432"
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "127.0.0.1:10001:6379"
+    volumes:
+      - redis_data:/var/lib/redis/data
   backend:
     build:
       context: .
@@ -11,9 +29,18 @@ services:
       - ./src/backend:/app/src
       - vscode-extensions:/run/.vscode-server/extensions
       - knot-sock:/run/knot
+    depends_on:
+      - db
+      - redis
     environment:
+      - CELERY_BROKER_URL=redis://redis:10000/0
+      - REDIS_URL=redis://redis:10000/0
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:10001/${DB_NAME}
       - PYTHONDONTWRITEBYTECODE=1
       - KNOT_SOCKET=/run/knot/knot.sock
+    env_file:
+      - .env_template
+      - .env
     entrypoint: /app/entrypoint.sh
   frontend:
     build:
@@ -32,3 +59,5 @@ services:
 volumes:
   vscode-extensions:
   knot-sock:
+  postgres_data:
+  redis_data:
