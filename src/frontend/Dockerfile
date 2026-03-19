@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY ./src/package.json /app/src/package.json
 RUN npm install --prefix src
+RUN npm install lucide-react --prefix src
 
 COPY ./src /app/src
 
