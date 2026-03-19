@@ -4,27 +4,18 @@ import { useState, useEffect } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 
-// Определяем интерфейс для зоны
-interface Zone {
-  name: string;
-}
-
 export default function ZonesPage() {
-  // 1. Создаем состояние для списка зон и индикатора загрузки
-  const [zones, setZones] = useState<Zone[]>([]);
+  const [zones, setZones] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. Функция для получения данных из API
   useEffect(() => {
     const fetchZones = async () => {
       try {
-        // Убедитесь, что URL совпадает с вашим бэкендом (например, http://localhost:8000/zones)
-        const response = await fetch("/zones/");
+        const response = await fetch("/api/zones");
         if (!response.ok) throw new Error("Ошибка при загрузке данных");
         
         const data = await response.json();
-        // В вашем FastAPI эндпоинте возвращается {"zones": [...]}
-        setZones(data.zones);
+        setZones(data.zones || []);
       } catch (error) {
         console.error("Failed to fetch zones:", error);
       } finally {
@@ -52,10 +43,9 @@ export default function ZonesPage() {
               {loading ? (
                 <div className="table-row">Загрузка...</div>
               ) : zones.length > 0 ? (
-                // 3. Отображаем список зон
-                zones.map((zone, index) => (
+                zones.map((zoneName, index) => (
                   <div key={index} className="table-row">
-                    {zone.name}
+                    {zoneName}
                   </div>
                 ))
               ) : (

@@ -7,12 +7,12 @@ router = APIRouter()
 service = ZoneService()
 
 
-@router.get("/")
+@router.get("")
 def list_zones():
     return {"zones": service.list_zones()}
 
 
-@router.post("/")
+@router.post("")
 def create_zone(zone: ZoneCreate):
     try:
         service.create_zone(zone.name)
