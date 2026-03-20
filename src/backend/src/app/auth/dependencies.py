@@ -1,17 +1,16 @@
-from fastapi import HTTPException, Header
-from ..users.service import UserService
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from .core import decode_access_token
 
-service = UserService()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-def require_admin(x_user: str = Header(...)):
-    # пока авторизация через header X-User (потом перейдём на JWT)
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return payload
 
-    user = service.get_user(x_user)
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    if user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Admin required")
-
+def require_admin(user: dict = Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
     return user

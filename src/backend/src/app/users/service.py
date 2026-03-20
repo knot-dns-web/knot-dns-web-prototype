@@ -1,3 +1,7 @@
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # временное хранилище для прототипа вместо бд
 _users_db = {}
 
@@ -13,8 +17,10 @@ class UserService:
         if username in _users_db:
             raise ValueError("User already exists")
 
+        hashed_password = pwd_context.hash(password)
+        
         _users_db[username] = {
-            "password": password,
+            "password": hashed_password,
             "role": role,
             "email": email
         }
@@ -24,7 +30,7 @@ class UserService:
             raise ValueError("User not found")
 
         if password:
-            _users_db[username]["password"] = password
+            _users_db[username]["password"] = pwd_context.hash(password)
         if role:
             _users_db[username]["role"] = role
         if email:
