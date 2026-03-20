@@ -32,7 +32,7 @@ class KnotZoneTransactionImpl(KnotZoneTransaction):
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-begin", zone=self.zone_name)
+        ctl.send_block(cmd="zone-begin", zone=self.zone_name) # type: ignore
         ctl.receive_block()
 
         super().open()
@@ -42,7 +42,7 @@ class KnotZoneTransactionImpl(KnotZoneTransaction):
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-commit", zone=self.zone_name)
+        ctl.send_block(cmd="zone-commit", zone=self.zone_name) # type: ignore
         ctl.receive_block()
 
         super().commit()
@@ -52,7 +52,7 @@ class KnotZoneTransactionImpl(KnotZoneTransaction):
         if ctl is None:
             return
         
-        ctl.send_block(cmd="zone-abort", zone=self.zone_name)
+        ctl.send_block(cmd="zone-abort", zone=self.zone_name) # type: ignore
         ctl.receive_block()
 
         super().rollback()

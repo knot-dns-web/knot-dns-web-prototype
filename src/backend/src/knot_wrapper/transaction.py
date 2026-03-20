@@ -19,22 +19,39 @@ class KnotConnection(ABC):
         pass
 
 class TransactionState(Enum):
-    initial: int = 0
-    opened: int = 1
-    commited: int = 2
-    cancelled: int = 3
+    initial = 0
+    opened = 1
+    committed = 2
+    cancelled = 3
+    failed = 4
 
-class KnotConfigTransaction(ABC):
-    def __init__(
-        self,
-        connection: KnotConnection
-    ):
-        self.connection = connection
+class BaseTransaction(ABC):
+    def __init__(self) -> None:
         self._state = TransactionState.initial
 
     @property
     def state(self):
         return self._state
+    
+    @abstractmethod
+    def open(self):
+        self._state = TransactionState.opened
+
+    @abstractmethod
+    def commit(self):
+        self._state = TransactionState.committed
+
+    @abstractmethod
+    def rollback(self):
+        self._state = TransactionState.cancelled
+
+class KnotConfigTransaction(BaseTransaction):
+    def __init__(
+        self,
+        connection: KnotConnection
+    ):
+        super().__init__()
+        self.connection = connection
 
     @abstractmethod
     def get(
@@ -66,30 +83,15 @@ class KnotConfigTransaction(ABC):
     ):
         pass
 
-    @abstractmethod
-    def open(self):
-        print("Open")
-        self._state = TransactionState.opened
-
-    @abstractmethod
-    def commit(self):
-        print("Commit")
-        self._state = TransactionState.commited
-
-    @abstractmethod
-    def rollback(self):
-        print("Rollback")
-        self._state = TransactionState.cancelled
-
-class KnotZoneTransaction(ABC):
+class KnotZoneTransaction(BaseTransaction):
     def __init__(
         self,
         connection: KnotConnection,
         zone_name: str | None
     ):
+        super().__init__()
         self.connection = connection
         self.zone_name = zone_name
-        self._state = TransactionState.initial
 
     @property
     def state(self):
@@ -124,18 +126,6 @@ class KnotZoneTransaction(ABC):
         data: str | None = None
     ):
         pass
-
-    @abstractmethod
-    def open(self):
-        self._state = TransactionState.opened
-
-    @abstractmethod
-    def commit(self):
-        self._state = TransactionState.commited
-
-    @abstractmethod
-    def rollback(self):
-        self._state = TransactionState.cancelled
 
 global_knot_path: str | None = None
 
@@ -191,8 +181,6 @@ def get_knot_config_transaction(
     finally:
         if transaction is not None and transaction.state == TransactionState.opened:
             transaction.rollback()
-        elif transaction.state != TransactionState.commited:
-            pass
 
 @contextmanager
 def get_knot_zone_transaction(
@@ -210,6 +198,4 @@ def get_knot_zone_transaction(
     finally:
         if transaction is not None and transaction.state == TransactionState.opened:
             transaction.rollback()
-        elif transaction.state != TransactionState.commited:
-            pass
 
