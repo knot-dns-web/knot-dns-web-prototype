@@ -8,14 +8,14 @@ service = RecordService()
 
 
 @router.get("/")
-def list_records():
-    return {"records": service.list_records()}
+async def list_records():
+    return {"records": await service.list_records()}
 
 
 @router.post("/")
-def create_record(record: RecordCreate):
+async def create_record(record: RecordCreate):
     try:
-        service.create_record(
+        await service.create_record(
             record.zone,
             record.owner,
             record.type,
@@ -28,9 +28,9 @@ def create_record(record: RecordCreate):
     
 
 @router.delete("/{zone}/{owner}/{rtype}")
-def delete_record(zone: str, owner: str, rtype: str):
+async def delete_record(zone: str, owner: str, rtype: str):
     try:
-        service.delete_record(zone, owner, rtype)
+        await service.delete_record(zone, owner, rtype)
         return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

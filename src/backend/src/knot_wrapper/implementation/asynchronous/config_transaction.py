@@ -2,32 +2,38 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.config import get_config, set_config, unset_config, begin_config, abort_config, commit_config
+from ..base_operations.config import get_config
 from .base_transaction import BaseTransaction, TransactionState
 
-from .message_broker import DNSWorker, DNSTaskProducer
+from .task import DNSTask, DNSTaskType, DNSCommit, DNSCommitType
+from .message_broker import DNSTaskProducer
 
 class KnotConfigTransaction(BaseTransaction):
     def __init__(
         self,
         ctl: KnotCtl,
-        redis_path: str
+        redis_path: str,
+        channel_name: str
     ):
         super().__init__()
         self.ctl = ctl
-        self.redis_path = redis_path
+        self._redis_path = redis_path
+        self._channel_name = channel_name
+        self._task_buffer: list[DNSTask] = list()
 
     async def open(self):
-        async with redis.from_url(self.redis_path) as r:
-            producer = DNSTaskProducer(r, "DNSCommitAsync")
-            await producer.enqueue_task("CHECK")
         await super().open()
     
     async def commit(self):
-        async with redis.from_url(self.redis_path) as r:
-            producer = DNSTaskProducer(r, "DNSCommitAsync")
-            await producer.enqueue_task("CHECK")
-
+        async with redis.from_url(self._redis_path) as r:
+            producer = DNSTaskProducer(r, self._channel_name)
+            await producer.enqueue_commit(
+                DNSCommit(
+                    type = DNSCommitType.conf,
+                    zone_name = None,
+                    tasks = self._task_buffer
+                )
+            )
         await super().commit()
 
     async def rollback(self):
@@ -57,13 +63,16 @@ class KnotConfigTransaction(BaseTransaction):
         item: str | None = None,
         data: str | None = None
     ):
-        return set_config(
-            self.ctl,
-            section,
-            identifier,
-            item,
-            data
+        task = DNSTask(
+            type = DNSTaskType.conf_set,
+            data = {
+                "section": section,
+                "identifier": identifier,
+                "item": item,
+                "data": data
+            }
         )
+        self._task_buffer.append(task)
 
     async def unset(
         self,
@@ -71,21 +80,25 @@ class KnotConfigTransaction(BaseTransaction):
         identifier: str | None = None,
         item: str | None = None
     ):
-        return unset_config(
-            self.ctl,
-            section,
-            identifier,
-            item
+        task = DNSTask(
+            type = DNSTaskType.conf_set,
+            data = {
+                "section": section,
+                "identifier": identifier,
+                "item": item
+            }
         )
+        self._task_buffer.append(task)
     
 @asynccontextmanager
 async def get_knot_config_transaction(
     ctl: KnotCtl,
-    redis_path: str
+    redis_path: str,
+    channel_name: str
 ):
     transaction = None
     try:
-        transaction = KnotConfigTransaction(ctl, redis_path)
+        transaction = KnotConfigTransaction(ctl, redis_path, channel_name)
         await transaction.open()
         yield transaction
     finally:

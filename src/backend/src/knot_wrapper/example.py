@@ -9,12 +9,13 @@ from .implementation.asynchronous import *
 default_knot_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
 
 redis_path = "redis://redis:6379"
+CHANNEL_NAME = "DNSCommitAsync"
 
 async def get_all_zones():
     global default_knot_path, redis_path
     ctl = KnotCtl()
     ctl.connect(default_knot_path)
-    async with get_knot_config_transaction(ctl, redis_path) as transaction:
+    async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
         result = await transaction.get(section="zone")
         if len(result) == 0:
             return tuple()
@@ -23,27 +24,52 @@ async def get_all_zones():
         return zones
 
 async def add_zone(zone_name: str):
-    async with get_knot_config_transaction(KnotCtl()) as transaction:
+    global redis_path
+
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+
+    async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
         await transaction.set("zone", zone_name)
         await transaction.commit()
 
 async def remove_zone(zone_name: str):
-    async with get_knot_config_transaction(KnotCtl()) as transaction:
+    global redis_path
+
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+
+    async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
         await transaction.unset("zone", zone_name)
         await transaction.commit()
 
 async def get_all_records():
-    async with get_knot_zone_transaction(KnotCtl(), None) as transaction:
-        results = transaction.get()
+    global redis_path
+
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+
+    async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, None) as transaction:
+        results = await transaction.get()
         return results
         
 async def add_record(zone_name: str, owner: str, rtype: str, ttl: str, data: str):
-    async with get_knot_zone_transaction(KnotCtl(), zone_name) as transaction:
+    global redis_path
+
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+
+    async with get_knot_zone_transaction(ctl, CHANNEL_NAME, zone_name) as transaction:
         await transaction.set(zone_name, owner, rtype, ttl, data)
         await transaction.commit()
 
 async def remove_record(zone_name: str, owner: str, rtype: str):
-    async with get_knot_zone_transaction(KnotCtl(), zone_name) as transaction:
+    global redis_path
+
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+
+    async with get_knot_zone_transaction(ctl, CHANNEL_NAME, zone_name) as transaction:
         await transaction.unset(zone_name, owner, rtype)
         await transaction.commit()
 

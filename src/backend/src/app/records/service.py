@@ -7,11 +7,11 @@ from ...knot_wrapper.example import (
 
 class RecordService:
 
-    def list_records(self):
-        return get_all_records()
+    async def list_records(self):
+        return await get_all_records()
 
-    def create_record(self, zone, owner, rtype, ttl, data):
-        add_record(zone, owner, rtype, str(ttl), data)
+    async def create_record(self, zone, owner, rtype, ttl, data):
+        await add_record(zone, owner, rtype, str(ttl), data)
 
-    def delete_record(self, zone, owner, rtype):
-        remove_record(zone, owner, rtype)
+    async def delete_record(self, zone, owner, rtype):
+        await remove_record(zone, owner, rtype)

@@ -13,18 +13,18 @@ async def list_zones():
 
 
 @router.post("")
-def create_zone(zone: ZoneCreate):
+async def create_zone(zone: ZoneCreate):
     try:
-        service.create_zone(zone.name)
+        await service.create_zone(zone.name)
         return {"status": "created"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/{zone_name}")
-def delete_zone(zone_name: str):
+async def delete_zone(zone_name: str):
     try:
-        service.delete_zone(zone_name)
+        await service.delete_zone(zone_name)
         return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

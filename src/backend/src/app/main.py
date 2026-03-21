@@ -16,9 +16,8 @@ from ..knot_wrapper.implementation.asynchronous import DNSWorker
 
 import os
 
-CHANNEL_NAME = "DNSCommitAsync"
-
 redis_client = redis.from_url("redis://redis:6379")
+CHANNEL_NAME = "DNSCommitAsync"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

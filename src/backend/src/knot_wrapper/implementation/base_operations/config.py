@@ -9,7 +9,7 @@ def begin_config(
 def commit_config(
     ctl: KnotCtl
 ):
-    ctl.send_block(cmd="cong-commit")
+    ctl.send_block(cmd="conf-commit")
     ctl.receive_block()
 
 def abort_config(
@@ -51,6 +51,7 @@ def set_config(
         item=item, # type: ignore
         data=data # type: ignore
     )
+    print("conf-set", section, identifier, item,data)
     ctl.receive_block()
 
 def unset_config(
