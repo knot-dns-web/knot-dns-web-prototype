@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
+import os
+import threading
+import asyncio
+import redis.asyncio as redis
+from contextlib import asynccontextmanager
+
 from ..knot_wrapper.implementation.synchronous import *
-# from ..knot_wrapper.example import start_processor
 from ..knot_wrapper.transaction import set_knot_connection_path
 
 from .zones.router import router as zones_router
@@ -10,11 +15,6 @@ from .records.router import router as records_router
 from .auth.router import router as auth_router
 from .users.router import router as users_router
 from .logger.router import router as logger_router
-
-
-import os
-import threading
-
 
 from .middleware.logger import LoggingMiddleware
 
@@ -26,27 +26,38 @@ app = FastAPI(
 app.add_middleware(LoggingMiddleware)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+from ..knot_wrapper.implementation.asynchronous import DNSWorker
 
-@app.on_event("startup")
-def startup():
+redis_client = redis.from_url("redis://redis:6379")
+CHANNEL_NAME = "DNSCommitAsync"
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global redis_client
+    
     socket_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
     set_knot_connection_path(socket_path)
 
-    # thread = threading.Thread(target=start_processor, daemon=True)
-    # thread.start()
+    user_service.create_user("admin", "admin", role="admin")
 
+    worker = DNSWorker(redis_client, CHANNEL_NAME, socket_path)
+    task = asyncio.create_task(worker.run())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+    await redis_client.close()
+
+app = FastAPI(
+    title="Knot DNS Manager",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 from .users.service import UserService
 user_service = UserService()
-
-@app.on_event("startup")
-def create_default_admin():
-    try:
-        user_service.create_user("admin", "admin", role="admin")
-    except:
-        pass
-
 
 app.include_router(zones_router, prefix="/zones", tags=["zones"])
 app.include_router(records_router, prefix="/records", tags=["records"])

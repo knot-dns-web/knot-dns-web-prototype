@@ -19,7 +19,7 @@ def list_zones(user: dict = Depends(get_current_user)):
 @router.post("/")
 def create_zone(zone: ZoneCreate, user: dict = Depends(get_current_user)):
     try:
-        service.create_zone(zone.name)
+        await service.create_zone(zone.name)
         return {"status": "created"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -28,7 +28,7 @@ def create_zone(zone: ZoneCreate, user: dict = Depends(get_current_user)):
 @router.delete("/{zone_name}")
 def delete_zone(zone_name: str, user: dict = Depends(get_current_user)):
     try:
-        service.delete_zone(zone_name)
+        await service.delete_zone(zone_name)
         return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

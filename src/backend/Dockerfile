@@ -4,16 +4,17 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN \
-    apt-get update && \
-    apt-get install python3 -y && \
-    apt-get install python3-pip -y && \
-    apt-get install python3-venv -y && \
-    rm -rf /var/lib/apt/lists/* && \
-    python3 -m venv /app/.venv && \
-    . /app/.venv/bin/activate && \
-    pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /app/.venv && \
+    /app/.venv/bin/pip install --upgrade pip && \
+    /app/.venv/bin/pip install --no-cache-dir -r requirements.txt
+
+ENV PATH="/app/.venv/bin:$PATH"
 
 COPY ./src/backend/src /app/src
 COPY ./.devcontainer /app/.devcontainer

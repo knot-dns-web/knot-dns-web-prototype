@@ -1,5 +1,26 @@
 from libknot.control import KnotCtl
 
+def begin_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-begin", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
+def commit_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-commit", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
+def abort_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-abort", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
 def get_zone(
     ctl: KnotCtl,
     zone: str | None = None,
@@ -12,8 +33,7 @@ def get_zone(
         owner=owner, # type: ignore
         rtype=type # type: ignore
     )
-    result = ctl.receive_block()
-    return result
+    return ctl.receive_block()
 
 def set_zone(
     ctl: KnotCtl,
@@ -38,12 +58,51 @@ def unset_zone(
     zone: str | None = None,
     owner: str | None = None,
     type: str | None = None,
-    data: str | None = None):
+    data: str | None = None
+):
     ctl.send_block(
         cmd="zone-unset",
         zone=zone, # type: ignore
         owner=owner, # type: ignore
         rtype=type, # type: ignore
         data=data # type: ignore
+    )
+    ctl.receive_block()
+
+def status_zone(
+    ctl: KnotCtl,
+    zone: str | None = None,
+    filters: str | None = None
+):
+    ctl.send_block(
+        cmd="zone-status",
+        zone=zone, # type: ignore
+        filters=filters # type: ignore
+    )
+    return ctl.receive_block()
+
+def backup_zone(
+    ctl: KnotCtl,
+    zone: str | None = None,
+    dir_path: str | None = None,
+    filters: str | None = None
+):
+    ctl.send_block(
+        cmd="zone-backup", 
+        zone=zone, # type: ignore
+        data=dir_path, # type: ignore
+        filters=filters # type: ignore
+    )
+    ctl.receive_block()
+
+def restore_zone(
+    ctl: KnotCtl,
+    zone: str | None = None,
+    dir_path: str | None = None
+):
+    ctl.send_block(
+        cmd="zone-restore", 
+        zone=zone, # type: ignore
+        data=dir_path # type: ignore
     )
     ctl.receive_block()
