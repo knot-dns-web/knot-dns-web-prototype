@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
+
+from ..auth.dependencies import get_current_user
 
 from .service import ZoneService
 from .schema import ZoneCreate, ZoneImport
@@ -10,12 +12,12 @@ service = ZoneService()
 
 
 @router.get("/")
-def list_zones():
+def list_zones(user: dict = Depends(get_current_user)):
     return {"zones": service.list_zones()}
 
 
 @router.post("/")
-def create_zone(zone: ZoneCreate):
+def create_zone(zone: ZoneCreate, user: dict = Depends(get_current_user)):
     try:
         service.create_zone(zone.name)
         return {"status": "created"}
@@ -24,7 +26,7 @@ def create_zone(zone: ZoneCreate):
 
 
 @router.delete("/{zone_name}")
-def delete_zone(zone_name: str):
+def delete_zone(zone_name: str, user: dict = Depends(get_current_user)):
     try:
         service.delete_zone(zone_name)
         return {"status": "deleted"}
@@ -43,7 +45,7 @@ def delete_zone(zone_name: str):
 
 from fastapi.responses import Response
 @router.get("/{zone_name}/export")
-def export_zone(zone_name: str):
+def export_zone(zone_name: str, user: dict = Depends(get_current_user)):
     try:
         data = service.export_zone(zone_name)
         return Response(
@@ -57,7 +59,7 @@ def export_zone(zone_name: str):
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/import")
-def import_zone(zone: ZoneImport):
+def import_zone(zone: ZoneImport, user: dict = Depends(get_current_user)):
     try:
         service.import_zone(zone.name, zone.content)
         return {"status": "imported"}

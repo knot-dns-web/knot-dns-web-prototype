@@ -33,7 +33,7 @@ class UserService:
             _users_db[username]["password"] = pwd_context.hash(password)
         if role:
             _users_db[username]["role"] = role
-        if email:
+        if email is not None:
             _users_db[username]["email"] = email
 
     def delete_user(self, username):
@@ -43,4 +43,8 @@ class UserService:
         del _users_db[username]
 
     def get_user(self, username):
-        return _users_db.get(username)
+        user_data = _users_db.get(username)
+        if user_data:
+            # Возвращаем копию с добавленным username
+            return {**user_data, "username": username}
+        return None

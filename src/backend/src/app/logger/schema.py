@@ -6,6 +6,7 @@ class LogOut(BaseModel):
     timestamp: datetime
     level: str
     message: str
+    user: str = "anonymous" 
     # user: str
     # action: str
     # details: str
