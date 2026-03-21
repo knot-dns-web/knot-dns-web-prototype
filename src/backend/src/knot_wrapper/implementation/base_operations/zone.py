@@ -1,5 +1,26 @@
 from libknot.control import KnotCtl
 
+def begin_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-begin", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
+def commit_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-commit", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
+def abort_zone(
+    ctl: KnotCtl,
+    zone_name: str | None = None
+):
+    ctl.send_block(cmd="zone-abort", zone=zone_name) # type: ignore
+    ctl.receive_block()
+
 def get_zone(
     ctl: KnotCtl,
     zone: str | None = None,
@@ -51,7 +72,7 @@ def unset_zone(
 def status_zone(
     ctl: KnotCtl,
     zone: str | None = None,
-    filters: str | None = None 
+    filters: str | None = None
 ):
     ctl.send_block(
         cmd="zone-status",

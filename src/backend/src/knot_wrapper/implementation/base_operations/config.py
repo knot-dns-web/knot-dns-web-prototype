@@ -1,5 +1,23 @@
 from libknot.control import KnotCtl
 
+def begin_config(
+    ctl: KnotCtl
+):
+    ctl.send_block(cmd="conf-begin")
+    ctl.receive_block()
+
+def commit_config(
+    ctl: KnotCtl
+):
+    ctl.send_block(cmd="conf-commit")
+    ctl.receive_block()
+
+def abort_config(
+    ctl: KnotCtl
+):
+    ctl.send_block(cmd="conf-abort")
+    ctl.receive_block()
+
 def get_config(
     ctl: KnotCtl,
     section: str | None = None,
@@ -33,6 +51,7 @@ def set_config(
         item=item, # type: ignore
         data=data # type: ignore
     )
+    print("conf-set", section, identifier, item,data)
     ctl.receive_block()
 
 def unset_config(

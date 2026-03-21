@@ -14,7 +14,7 @@
                 "--port",
                 "8000"
             ],
-            "jinja": true,
+            "jinja": true
         }
     ]
 }

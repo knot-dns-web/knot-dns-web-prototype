@@ -1,3 +1,0 @@
-
-class StaleDataError(Exception):
-    pass
