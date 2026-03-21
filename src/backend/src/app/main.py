@@ -8,7 +8,6 @@ import redis.asyncio as redis
 from contextlib import asynccontextmanager
 
 from ..knot_wrapper.implementation.synchronous import *
-from ..knot_wrapper.transaction import set_knot_connection_path
 
 from .zones.router import router as zones_router
 from .records.router import router as records_router
@@ -36,7 +35,6 @@ async def lifespan(app: FastAPI):
     global redis_client
     
     socket_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
-    set_knot_connection_path(socket_path)
 
     user_service.create_user("admin", "admin", role="admin")
 

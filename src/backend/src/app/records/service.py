@@ -1,31 +1,40 @@
-from ...knot_wrapper.transaction import get_knot_connection, get_knot_zone_transaction
+from ...knot_wrapper.implementation.synchronous import (
+    get_knot_zone_transaction
+)
 
-# from ...knot_wrapper.example import (
-#     get_all_records,
-#     add_record,
-#     remove_record
-# )
+from libknot.control import KnotCtl
+import os
+
+default_knot_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
+redis_path = "redis://redis:6379"
+CHANNEL_NAME = "DNSCommitAsync"
 
 class RecordService:
 
     def list_records(self):        
-        with get_knot_connection() as connection:
-            with get_knot_zone_transaction(connection, None) as transaction:
-                results = transaction.get()
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
 
-                return results
+        with get_knot_zone_transaction(ctl, None) as transaction:
+            results = transaction.get()
+
+            return results
 
     def create_record(self, zone, owner, rtype, ttl, data):
-        with get_knot_connection() as connection:
-                with get_knot_zone_transaction(connection, zone) as transaction:
-                    transaction.set(zone, owner, rtype, str(ttl), data)
-                    transaction.commit()
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
+
+        with get_knot_zone_transaction(ctl, zone) as transaction:
+            transaction.set(zone, owner, rtype, str(ttl), data)
+            transaction.commit()
 
     def delete_record(self, zone, owner, rtype):
-        with get_knot_connection() as connection:
-            with get_knot_zone_transaction(connection, zone) as transaction:
-                transaction.unset(zone, owner, rtype)
-                transaction.commit()
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
+
+        with get_knot_zone_transaction(ctl, zone) as transaction:
+            transaction.unset(zone, owner, rtype)
+            transaction.commit()
 
 '''
 {
