@@ -7,6 +7,8 @@ class DNSTaskType(Enum):
     conf_unset = "conf-unset"
     zone_set = "zone_set"
     zone_unset = "zone_unset"
+    zone_backup = "zone-bacup"
+    zone_restore = "zone-restore"
 
 class DNSCommitType(Enum):
     conf = "conf"

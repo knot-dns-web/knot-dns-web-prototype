@@ -72,7 +72,7 @@ def unset_zone(
 def status_zone(
     ctl: KnotCtl,
     zone: str | None = None,
-    filters: str | None = None 
+    filters: str | None = None
 ):
     ctl.send_block(
         cmd="zone-status",

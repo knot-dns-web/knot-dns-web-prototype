@@ -7,7 +7,7 @@ from libknot.control import KnotCtl
 from .task import DNSCommit, DNSTaskType, DNSCommitType
 
 from ..base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
-from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone
+from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
 
 class DNSWorker:
     def __init__(
@@ -15,7 +15,7 @@ class DNSWorker:
         redis: redis.Redis,
         channel: str,
         socket_path: str
-    ) -> None:
+    ):
         self._redis = redis
         self._socket_path = socket_path
         self._channel = channel
@@ -46,6 +46,10 @@ class DNSWorker:
                         set_zone(ctl, **task.data)
                     case DNSTaskType.zone_unset:
                         unset_zone(ctl, **task.data)
+                    case DNSTaskType.zone_backup:
+                        backup_zone(ctl, **task.data)
+                    case DNSTaskType.zone_restore:
+                        restore_zone(ctl, **task.data)
             if is_conf:
                 commit_config(ctl)
             else:

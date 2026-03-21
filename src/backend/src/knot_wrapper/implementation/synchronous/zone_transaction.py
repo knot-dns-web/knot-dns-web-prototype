@@ -1,7 +1,7 @@
 from libknot.control import KnotCtl
 from contextlib import contextmanager
 
-from ..base_operations.zone import get_zone, set_zone, unset_zone, begin_zone, abort_zone, commit_zone
+from ..base_operations.zone import get_zone, set_zone, unset_zone, begin_zone, abort_zone, commit_zone, status_zone, backup_zone, restore_zone
 from .base_transaction import BaseTransaction, TransactionState
 
 class KnotZoneTransaction(BaseTransaction):
@@ -71,7 +71,40 @@ class KnotZoneTransaction(BaseTransaction):
             data
         )
     
+    def status(
+        self,
+        zone: str | None = None,
+        filters: str | None = None
+    ):
+        return status_zone(
+            self.ctl,
+            zone,
+            filters
+        )
 
+    def backup(
+        self,
+        zone: str | None = None,
+        dir_path: str | None = None,
+        filters: str | None = None
+    ):
+        return backup_zone(
+            self.ctl,
+            zone,
+            dir_path,
+            filters
+        )
+
+    def restore(
+        self,
+        zone: str | None = None,
+        dir_path: str | None = None
+    ):
+        return restore_zone(
+            self.ctl,
+            zone,
+            dir_path
+        )
     
 @contextmanager
 def get_knot_zone_transaction(

@@ -2,7 +2,7 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.zone import get_zone
+from ..base_operations.zone import get_zone, status_zone
 from .base_transaction import BaseTransaction, TransactionState
 
 from .task import DNSTask, DNSTaskType, DNSCommit, DNSCommitType
@@ -88,6 +88,47 @@ class KnotZoneTransaction(BaseTransaction):
                 "owner": owner,
                 "type": type,
                 "data": data
+            }
+        )
+        self._task_buffer.append(task)
+
+    def status(
+        self,
+        zone: str | None = None,
+        filters: str | None = None
+    ):
+        return status_zone(
+            self.ctl,
+            zone,
+            filters
+        )
+
+    def backup(
+        self,
+        zone: str | None = None,
+        dir_path: str | None = None,
+        filters: str | None = None
+    ):
+        task = DNSTask(
+            type = DNSTaskType.zone_backup,
+            data = {
+                "zone": zone,
+                "dir_path": dir_path,
+                "filters": filters
+            }
+        )
+        self._task_buffer.append(task)
+
+    def restore(
+        self,
+        zone: str | None = None,
+        dir_path: str | None = None
+    ):
+        task = DNSTask(
+            type = DNSTaskType.zone_restore,
+            data = {
+                "zone": zone,
+                "dir_path": dir_path
             }
         )
         self._task_buffer.append(task)
