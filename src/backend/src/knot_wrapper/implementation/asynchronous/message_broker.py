@@ -29,7 +29,7 @@ class DNSWorker:
         zone_name = commit.zone_name
 
         is_conf = commit_type == DNSCommitType.conf
-        is_commited = False
+        is_committed = False
 
         if is_conf:
             begin_config(ctl)
@@ -54,9 +54,9 @@ class DNSWorker:
                 commit_config(ctl)
             else:
                 commit_zone(ctl, zone_name)
-            is_commited = True
+            is_committed = True
         finally:
-            if not is_commited:
+            if not is_committed:
                 if is_conf:
                     abort_config(ctl)
                 else:

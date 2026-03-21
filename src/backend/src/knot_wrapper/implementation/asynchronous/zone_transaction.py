@@ -92,7 +92,7 @@ class KnotZoneTransaction(BaseTransaction):
         )
         self._task_buffer.append(task)
 
-    def status(
+    async def status(
         self,
         zone: str | None = None,
         filters: str | None = None
@@ -103,7 +103,7 @@ class KnotZoneTransaction(BaseTransaction):
             filters
         )
 
-    def backup(
+    async def backup(
         self,
         zone: str | None = None,
         dir_path: str | None = None,
@@ -119,7 +119,7 @@ class KnotZoneTransaction(BaseTransaction):
         )
         self._task_buffer.append(task)
 
-    def restore(
+    async def restore(
         self,
         zone: str | None = None,
         dir_path: str | None = None
