@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from ..auth.dependencies import get_current_user
 from .service import RecordService
 from .schema import RecordCreate
 
@@ -8,12 +10,12 @@ service = RecordService()
 
 
 @router.get("/")
-async def list_records():
-    return {"records": await service.list_records()}
+def list_records(user: dict = Depends(get_current_user)):
+    return {"records": service.list_records()}
 
 
 @router.post("/")
-async def create_record(record: RecordCreate):
+def create_record(record: RecordCreate, user: dict = Depends(get_current_user)):
     try:
         await service.create_record(
             record.zone,
@@ -28,7 +30,7 @@ async def create_record(record: RecordCreate):
     
 
 @router.delete("/{zone}/{owner}/{rtype}")
-async def delete_record(zone: str, owner: str, rtype: str):
+def delete_record(zone: str, owner: str, rtype: str, user: dict = Depends(get_current_user)):
     try:
         await service.delete_record(zone, owner, rtype)
         return {"status": "deleted"}

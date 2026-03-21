@@ -7,3 +7,8 @@ class ZoneCreate(BaseModel):
 
 class ZoneResponse(BaseModel):
     name: str
+
+
+class ZoneImport(BaseModel):
+    name: str
+    content: str
