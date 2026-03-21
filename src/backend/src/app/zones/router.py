@@ -8,8 +8,8 @@ service = ZoneService()
 
 
 @router.get("")
-def list_zones():
-    return {"zones": service.list_zones()}
+async def list_zones():
+    return {"zones": await service.list_zones()}
 
 
 @router.post("")

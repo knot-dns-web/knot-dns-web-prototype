@@ -2,52 +2,50 @@ from typing import Any
 import threading
 import os
 
-from .implementation.synchronous import *
-from .transaction import get_knot_config_transaction, get_knot_zone_transaction, get_knot_connection, set_knot_connection_path
+from libknot.control import KnotCtl
 
-# from .implementation.asynchronous.processor import global_processor
+from .implementation.asynchronous import *
 
 default_knot_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
 
-def get_all_zones():
-    with get_knot_connection() as connection:
-        with get_knot_config_transaction(connection) as transaction:
-            result = transaction.get(section="zone")
-            if len(result) == 0:
-                return tuple()
-            zones_dict: dict[str, Any] = result['zone']
-            zones = tuple((name for name in zones_dict))
-            return zones
+redis_path = "redis://redis:6379"
 
-def add_zone(zone_name: str):
-    with get_knot_connection() as connection:
-        with get_knot_config_transaction(connection) as transaction:
-            transaction.set("zone", zone_name)
-            transaction.commit()
+async def get_all_zones():
+    global default_knot_path, redis_path
+    ctl = KnotCtl()
+    ctl.connect(default_knot_path)
+    async with get_knot_config_transaction(ctl, redis_path) as transaction:
+        result = await transaction.get(section="zone")
+        if len(result) == 0:
+            return tuple()
+        zones_dict: dict[str, Any] = result['zone']
+        zones = tuple((name for name in zones_dict))
+        return zones
 
-def remove_zone(zone_name: str):
-    with get_knot_connection() as connection:
-        with get_knot_config_transaction(connection) as transaction:
-            transaction.unset("zone", zone_name)
-            transaction.commit()
+async def add_zone(zone_name: str):
+    async with get_knot_config_transaction(KnotCtl()) as transaction:
+        await transaction.set("zone", zone_name)
+        await transaction.commit()
 
-def get_all_records():
-    with get_knot_connection() as connection:
-        with get_knot_zone_transaction(connection, None) as transaction:
-            results = transaction.get()
-            return results
+async def remove_zone(zone_name: str):
+    async with get_knot_config_transaction(KnotCtl()) as transaction:
+        await transaction.unset("zone", zone_name)
+        await transaction.commit()
+
+async def get_all_records():
+    async with get_knot_zone_transaction(KnotCtl(), None) as transaction:
+        results = transaction.get()
+        return results
         
-def add_record(zone_name: str, owner: str, rtype: str, ttl: str, data: str):
-    with get_knot_connection() as connection:
-        with get_knot_zone_transaction(connection, zone_name) as transaction:
-            transaction.set(zone_name, owner, rtype, ttl, data)
-            transaction.commit()
+async def add_record(zone_name: str, owner: str, rtype: str, ttl: str, data: str):
+    async with get_knot_zone_transaction(KnotCtl(), zone_name) as transaction:
+        await transaction.set(zone_name, owner, rtype, ttl, data)
+        await transaction.commit()
 
-def remove_record(zone_name: str, owner: str, rtype: str):
-    with get_knot_connection() as connection:
-        with get_knot_zone_transaction(connection, zone_name) as transaction:
-            transaction.unset(zone_name, owner, rtype)
-            transaction.commit()
+async def remove_record(zone_name: str, owner: str, rtype: str):
+    async with get_knot_zone_transaction(KnotCtl(), zone_name) as transaction:
+        await transaction.unset(zone_name, owner, rtype)
+        await transaction.commit()
 
 menu_choice = \
 """

@@ -51,8 +51,8 @@ class ZoneService:
                 transaction.set(zone_without_dot, "@", "SOA", "3600", soa_data)
                 transaction.commit()
     
-    def list_zones(self):
-        return get_all_zones()
+    async def list_zones(self):
+        return await get_all_zones()
 
     # def create_zone(self, name: str):
     #     add_zone(name)
