@@ -1,10 +1,8 @@
-from ...knot_wrapper.example import (
-    get_all_zones,
-    add_zone,
-    remove_zone,
+from ...knot_wrapper.implementation.synchronous import (
     get_knot_config_transaction,
     get_knot_zone_transaction
 )
+
 import os
 
 from libknot.control import KnotCtl
@@ -13,14 +11,12 @@ from .core import validate_zone_name, generate_serial
 from typing import Any
 
 default_knot_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
-
 redis_path = "redis://redis:6379"
-
 CHANNEL_NAME = "DNSCommitAsync"
 
 class ZoneService:
 
-    async def create_zone(self, name: str):
+    def create_zone(self, name: str):
         global default_knot_path, redis_path
 
         validate_zone_name(name)
@@ -30,12 +26,12 @@ class ZoneService:
         ctl.connect(default_knot_path)
 
         # создаём зону
-        async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
-            await transaction.set("zone", name)
-            await transaction.commit()
+        with get_knot_config_transaction(ctl) as transaction:
+            transaction.set("zone", name)
+            transaction.commit()
         
         # добавляем записи NS и SOA
-        async with get_knot_zone_transaction(ctl, redis_path, name) as transaction:
+        with get_knot_zone_transaction(ctl, name) as transaction:
 
             # Убираем точку из имени зоны для формирования имен NS серверов
             zone_without_dot = name.rstrip('.')
@@ -44,43 +40,47 @@ class ZoneService:
             ns1 = f"ns1.{zone_without_dot}."
             ns2 = f"ns2.{zone_without_dot}."
 
-            await transaction.set(zone_without_dot, "@", "NS", "3600", ns1)
-            await transaction.set(zone_without_dot, "@", "NS", "3600", ns2)
+            transaction.set(zone_without_dot, "@", "NS", "3600", ns1)
+            transaction.set(zone_without_dot, "@", "NS", "3600", ns2)
 
-            await transaction.set(zone_without_dot, "ns1", "A", "3600", "127.0.0.1")
-            await transaction.set(zone_without_dot, "ns2", "A", "3600", "127.0.0.1")
+            transaction.set(zone_without_dot, "ns1", "A", "3600", "127.0.0.1")
+            transaction.set(zone_without_dot, "ns2", "A", "3600", "127.0.0.1")
 
             soa_data = (
                 f"ns1.{zone_without_dot}. hostmaster.{zone_without_dot}. "
                 f"{serial} 7200 3600 1209600 3600"
             )
 
-            await transaction.set(zone_without_dot, "@", "SOA", "3600", soa_data)
-            await transaction.commit()
+            transaction.set(zone_without_dot, "@", "SOA", "3600", soa_data)
+            transaction.commit()
     
     def list_zones(self):
-        with get_knot_connection() as connection:
-            with get_knot_config_transaction(connection) as transaction:
-                result = transaction.get(section="zone")
-                if len(result) == 0:
-                    return tuple()
-                zones_dict: dict[str, Any] = result['zone']
-                zones = tuple((name for name in zones_dict))
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
+    
+        with get_knot_config_transaction(ctl) as transaction:
+            result = transaction.get(section="zone")
+            if len(result) == 0:
+                return tuple()
+            zones_dict: dict[str, Any] = result['zone']
+            zones = tuple((name for name in zones_dict))
 
-                return zones
+            return zones
 
     def delete_zone(self, name: str):
-        with get_knot_connection() as connection:
-            with get_knot_config_transaction(connection) as transaction:
-                transaction.unset("zone", name)
-                transaction.commit()
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
+        
+        with get_knot_config_transaction(ctl) as transaction:
+            transaction.unset("zone", name)
+            transaction.commit()
 
     def export_zone(self, name: str):
-        with get_knot_connection() as connection:
-            with get_knot_zone_transaction(connection, name) as transaction:
-                records_data = transaction.get()
-        
-        print(f"DEBUG records_data: {records_data}")
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
+
+        with get_knot_zone_transaction(ctl, name) as transaction:
+            records_data = transaction.get()
         
         if not records_data:
             raise ValueError("Zone is empty")
@@ -110,33 +110,33 @@ class ZoneService:
 
         validate_zone_name(name)
 
-        with get_knot_connection() as connection:
+        ctl = KnotCtl()
+        ctl.connect(default_knot_path)
 
-            # создаём зону
-            with get_knot_config_transaction(connection) as transaction:
-                transaction.set("zone", name)
-                transaction.commit()
+        # создаём зону
+        with get_knot_config_transaction(ctl) as transaction:
+            transaction.set("zone", name)
+            transaction.commit()
 
-            # добавляем записи
-            with get_knot_zone_transaction(connection, name) as transaction:
+        # добавляем записи
+        with get_knot_zone_transaction(ctl, name) as transaction:
+            for line in content.splitlines():
+                line = line.strip()
 
-                for line in content.splitlines():
-                    line = line.strip()
+                if not line or line.startswith(";"):
+                    continue
 
-                    if not line or line.startswith(";"):
-                        continue
+                parts = line.split()
 
-                    parts = line.split()
+                if len(parts) < 5:
+                    continue
 
-                    if len(parts) < 5:
-                        continue
+                owner, ttl, _, rtype, *data = parts
+                data = " ".join(data)
 
-                    owner, ttl, _, rtype, *data = parts
-                    data = " ".join(data)
+                transaction.set(name.rstrip("."), owner, rtype, ttl, data)
 
-                    transaction.set(name.rstrip("."), owner, rtype, ttl, data)
-
-                transaction.commit()
+            transaction.commit()
 
 """
 {
