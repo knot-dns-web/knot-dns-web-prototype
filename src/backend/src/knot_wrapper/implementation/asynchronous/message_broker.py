@@ -82,20 +82,19 @@ class DNSWorker:
 
     async def run(self):
         while True:
-            result = await self._redis.brpop( # type: ignore
-                self._channel,
-                timeout=0
-            )
-            _, task_data = result
-            task = Task.model_validate_json(task_data)
-            commit = task.commit
-            task_id = task.id
-
             exception_text = None
             error_type = None
             error_data = None
-
             try:
+                result = await self._redis.brpop( # type: ignore
+                    self._channel,
+                    timeout=0
+                )
+                _, task_data = result
+                task = Task.model_validate_json(task_data)
+                commit = task.commit
+                task_id = task.id
+
                 self.__apply_commit(commit)
             except KnotCtlError as e:
                 error = KnotError.from_raw_error(e)
@@ -141,7 +140,7 @@ class DNSTaskProducer:
 
         if reply is None:
             await self._redis.delete(task_id)
-            raise TimeoutError("Message queue timed out")
+            raise TimeoutError("Task queue timed out")
         
         _, reply_data = reply
         result = TaskResult.model_validate_json(reply_data)
