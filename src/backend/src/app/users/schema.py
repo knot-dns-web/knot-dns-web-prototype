@@ -4,16 +4,13 @@ from typing import Optional
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: str = "user"   # по умолчанию обычный пользователь
+    role: str = "user"
     email: Optional[str] = None
 
-
 class UserUpdate(BaseModel):
-    username: str
     password: Optional[str] = None
     email: Optional[str] = None
     role: Optional[str] = None
-
 
 class UserOut(BaseModel):
     username: str

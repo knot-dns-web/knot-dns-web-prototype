@@ -6,17 +6,25 @@ from ..auth.dependencies import require_admin
 router = APIRouter()
 service = UserService()
 
-@router.get("/", response_model=list[UserOut])
+@router.get("", response_model=list[UserOut])
 def list_users(admin=Depends(require_admin)):
     return service.list_users()
 
-@router.post("/", response_model=UserOut)
+@router.post("", response_model=UserOut)
 def create_user(user: UserCreate, admin=Depends(require_admin)):
-    service.create_user(user.username, user.password, role="user", email=user.email)
+    service.create_user(
+        user.username,
+        user.password,
+        role=user.role,
+        email=user.email,
+    )
+    created = service.get_user(user.username)
+    if not created:
+        raise HTTPException(status_code=500, detail="User creation failed")
     return UserOut(
-        username=user.username, 
-        role=user.role, 
-        email=user.email
+        username=created["username"],
+        role=created["role"],
+        email=created.get("email"),
     )
 
 @router.put("/{username}", response_model=UserOut)
@@ -36,9 +44,13 @@ def update_user(username: str, user: UserUpdate, admin=Depends(require_admin)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
 @router.delete("/{username}", response_model=UserDeleteResponse)
 def delete_user(username: str, admin=Depends(require_admin)):
+    if username == admin.get("sub"):
+        raise HTTPException(
+            status_code=400,
+            detail="Нельзя удалить самого себя",
+        )
     try:
         service.delete_user(username)
         return UserDeleteResponse(

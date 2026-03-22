@@ -23,18 +23,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6rem 1rem 5rem;
-}
-
-.home-hero {
-  width: 100%;
-  max-width: 64rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
+  padding: 6rem;
 }
 
 .home-title {
@@ -48,20 +37,11 @@ body {
   color: #94a3b8;
 }
 
-.home-actions {
-  width: 100%;
-  max-width: 64rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
 .home-btn {
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 500;
+  max-width:max-content;
   font-size: 0.875rem;
   transition: transform 140ms ease, background-color 140ms ease, color 140ms ease,
     border-color 140ms ease;
@@ -79,13 +59,12 @@ body {
 .home-btn-primary {
   background: #10b981;
   border: 1px solid transparent;
-  color: #020617;
+  color: var(--background);
 }
 
 .home-btn-outline {
   background: transparent;
   border: 1px solid #1e293b;
-  color: #f1f5f9;
 }
 
 .home-btn-outline:hover {
@@ -93,73 +72,25 @@ body {
 }
 
 .app-glass {
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(5px);
+  background-color: rgba(5, 7, 11, 0.5);
+  backdrop-filter: blur(8px);
 }
 
 .control-main {
   flex: 1;
-  padding: 6rem 3rem 5rem;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.control-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2rem;
-  max-width: 64rem;
-  width: 100%;
-}
-
-.control-card {
-  background: #1f2937;
-  border-radius: 0.75rem;
-  border: 1px solid #1f2937;
-  padding: 2.5rem 2rem;
-  color: #e5e7eb;
-  font-size: 1.125rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
-.control-card:hover {
-  background: #374151;
-  border-color: #4b5563;
-  transform: translateY(-2px);
-}
-
-.control-card--tall-left {
-  min-height: 9rem;
-}
-
-.control-card--wide-center {
-  min-height: 12rem;
-}
-
-@media (max-width: 900px) {
-  .control-main {
-    padding-inline: 1.25rem;
-  }
-
-  .control-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 768px) {
-  .home-title {
-    font-size: 2.25rem;
-  }
-  .home-subtitle {
-    font-size: 1rem;
-  }
-  .home-btn {
-    font-size: 1rem;
+@layer components {
+  .card {
+    @apply flex items-center justify-center text-center
+           bg-slate-800 border border-slate-700
+           rounded-xl
+           min-h-27.5
+           transition-all duration-200
+           hover:bg-slate-700 hover:scale-[1.02]
+           active:scale-[0.97];
   }
 }
