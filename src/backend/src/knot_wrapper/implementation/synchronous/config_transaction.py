@@ -4,6 +4,8 @@ from contextlib import contextmanager
 from ..base_operations.config import get_config, set_config, unset_config, begin_config, abort_config, commit_config
 from .base_transaction import BaseTransaction, TransactionState
 
+from ...error.base_error import KnotError, KnotCtlError
+
 class KnotConfigTransaction(BaseTransaction):
     def __init__(
         self,
@@ -13,16 +15,25 @@ class KnotConfigTransaction(BaseTransaction):
         self.ctl = ctl
 
     def open(self):
-        begin_config(self.ctl)
-        super().open()
+        try:
+            begin_config(self.ctl)
+            super().open()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def commit(self):
-        commit_config(self.ctl)
-        super().commit()
+        try:
+            commit_config(self.ctl)
+            super().commit()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def rollback(self):
-        abort_config(self.ctl)
-        super().rollback()
+        try:
+            abort_config(self.ctl)
+            super().rollback()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def get(
         self,
@@ -32,14 +43,17 @@ class KnotConfigTransaction(BaseTransaction):
         flags: str | None = None,
         filters: str | None = None
     ):
-        return get_config(
-            self.ctl,
-            section,
-            identifier,
-            item,
-            flags,
-            filters
-        )
+        try:
+            return get_config(
+                self.ctl,
+                section,
+                identifier,
+                item,
+                flags,
+                filters
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def set(
         self,
@@ -48,13 +62,16 @@ class KnotConfigTransaction(BaseTransaction):
         item: str | None = None,
         data: str | None = None
     ):
-        return set_config(
-            self.ctl,
-            section,
-            identifier,
-            item,
-            data
-        )
+        try:
+            return set_config(
+                self.ctl,
+                section,
+                identifier,
+                item,
+                data
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def unset(
         self,
@@ -62,12 +79,15 @@ class KnotConfigTransaction(BaseTransaction):
         identifier: str | None = None,
         item: str | None = None
     ):
-        return unset_config(
-            self.ctl,
-            section,
-            identifier,
-            item
-        )
+        try:
+            return unset_config(
+                self.ctl,
+                section,
+                identifier,
+                item
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
 @contextmanager
 def get_knot_config_transaction(

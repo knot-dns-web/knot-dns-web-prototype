@@ -4,6 +4,8 @@ from contextlib import contextmanager
 from ..base_operations.zone import get_zone, set_zone, unset_zone, begin_zone, abort_zone, commit_zone, status_zone, backup_zone, restore_zone
 from .base_transaction import BaseTransaction, TransactionState
 
+from ...error.base_error import KnotError, KnotCtlError
+
 class KnotZoneTransaction(BaseTransaction):
     def __init__(
         self,
@@ -15,16 +17,25 @@ class KnotZoneTransaction(BaseTransaction):
         self.zone_name = zone_name
 
     def open(self):
-        begin_zone(self.ctl, self.zone_name)
-        super().open()
+        try:
+            begin_zone(self.ctl, self.zone_name)
+            super().open()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def commit(self):
-        commit_zone(self.ctl, self.zone_name)
-        super().commit()
+        try:
+            commit_zone(self.ctl, self.zone_name)
+            super().commit()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def rollback(self):
-        abort_zone(self.ctl, self.zone_name)
-        super().rollback()
+        try:
+            abort_zone(self.ctl, self.zone_name)
+            super().rollback()
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def get(
         self,
@@ -32,12 +43,15 @@ class KnotZoneTransaction(BaseTransaction):
         owner: str | None = None,
         type: str | None = None
     ):
-        return get_zone(
-            self.ctl,
-            zone,
-            owner,
-            type
-        )
+        try:
+            return get_zone(
+                self.ctl,
+                zone,
+                owner,
+                type
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def set(
         self,
@@ -47,14 +61,17 @@ class KnotZoneTransaction(BaseTransaction):
         ttl: str | None = None,
         data: str | None = None
     ):
-        return set_zone(
-            self.ctl,
-            zone,
-            owner,
-            type,
-            ttl,
-            data
-        )
+        try:
+            return set_zone(
+                self.ctl,
+                zone,
+                owner,
+                type,
+                ttl,
+                data
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def unset(
         self,
@@ -63,24 +80,30 @@ class KnotZoneTransaction(BaseTransaction):
         type: str | None = None,
         data: str | None = None
     ):
-        return unset_zone(
-            self.ctl,
-            zone,
-            owner,
-            type,
-            data
-        )
+        try:
+            return unset_zone(
+                self.ctl,
+                zone,
+                owner,
+                type,
+                data
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
     def status(
         self,
         zone: str | None = None,
         filters: str | None = None
     ):
-        return status_zone(
-            self.ctl,
-            zone,
-            filters
-        )
+        try:
+            return status_zone(
+                self.ctl,
+                zone,
+                filters
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def backup(
         self,
@@ -88,23 +111,29 @@ class KnotZoneTransaction(BaseTransaction):
         dir_path: str | None = None,
         filters: str | None = None
     ):
-        return backup_zone(
-            self.ctl,
-            zone,
-            dir_path,
-            filters
-        )
+        try:
+            return backup_zone(
+                self.ctl,
+                zone,
+                dir_path,
+                filters
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
 
     def restore(
         self,
         zone: str | None = None,
         dir_path: str | None = None
     ):
-        return restore_zone(
-            self.ctl,
-            zone,
-            dir_path
-        )
+        try:
+            return restore_zone(
+                self.ctl,
+                zone,
+                dir_path
+            )
+        except KnotCtlError as e:
+            raise KnotError.from_raw_error(e)
     
 @contextmanager
 def get_knot_zone_transaction(
