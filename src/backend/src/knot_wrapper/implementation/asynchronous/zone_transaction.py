@@ -5,7 +5,7 @@ import redis.asyncio as redis
 from ..base_operations.zone import get_zone, status_zone
 from .base_transaction import BaseTransaction, TransactionState
 
-from .task import DNSTask, DNSTaskType, DNSCommit, DNSCommitType
+from .task import DNSCommand, DNSTaskType, DNSCommit, DNSCommitType
 from .message_broker import DNSTaskProducer
 
 class KnotZoneTransaction(BaseTransaction):
@@ -21,7 +21,7 @@ class KnotZoneTransaction(BaseTransaction):
         self._redis_path = redis_path
         self._zone_name = zone_name
         self._channel_name = channel_name
-        self._task_buffer: list[DNSTask] = list()
+        self._task_buffer: list[DNSCommand] = list()
 
     async def open(self):
         await super().open()
@@ -62,7 +62,7 @@ class KnotZoneTransaction(BaseTransaction):
         ttl: str | None = None,
         data: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.zone_set,
             data = {
                 "zone": zone,
@@ -81,7 +81,7 @@ class KnotZoneTransaction(BaseTransaction):
         type: str | None = None,
         data: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.zone_unset,
             data = {
                 "zone": zone,
@@ -109,7 +109,7 @@ class KnotZoneTransaction(BaseTransaction):
         dir_path: str | None = None,
         filters: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.zone_backup,
             data = {
                 "zone": zone,
@@ -124,7 +124,7 @@ class KnotZoneTransaction(BaseTransaction):
         zone: str | None = None,
         dir_path: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.zone_restore,
             data = {
                 "zone": zone,

@@ -14,11 +14,11 @@ class DNSCommitType(Enum):
     conf = "conf"
     zone = "zone"
 
-class DNSTask(BaseModel):
+class DNSCommand(BaseModel):
     type: DNSTaskType
     data: dict[str, str | None]
 
 class DNSCommit(BaseModel):
     type: DNSCommitType
     zone_name: str | None
-    tasks: list[DNSTask]
+    tasks: list[DNSCommand]
