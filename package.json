@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@tanstack/react-query": "^5.91.3",
     "lucide-react": "^0.577.0"
   }
 }
