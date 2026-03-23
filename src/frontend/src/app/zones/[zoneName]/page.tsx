@@ -111,16 +111,18 @@ export default function ZoneRecordsPage() {
             <h1 className="text-[30px] font-bold">{zoneName}</h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setRecordModalOpen(true);
-            }}
-            className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold"
-          >
-            Добавить запись
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null);
+                setRecordModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold"
+            >
+              Добавить запись
+            </button>
+          </div>
         </div>
 
         {loading && (
@@ -142,7 +144,7 @@ export default function ZoneRecordsPage() {
         {!loading && !error && groupedRecords.length > 0 && (
           <div className="space-y-4">
             {groupedRecords.map((domainGroup) => (
-              <div key={domainGroup.owner} className="rounded-lg bg-white/[0.06] p-3">
+              <div key={domainGroup.owner} className="rounded-lg bg-white/6 p-3">
                 <div className="text-lg font-semibold mb-2">{domainGroup.owner}</div>
 
                 <div className="space-y-2">
@@ -164,7 +166,7 @@ export default function ZoneRecordsPage() {
                         {typeGroup.items.map((record, idx) => (
                           <div
                             key={`${record.zone}-${record.owner}-${record.type}-${record.data}-${idx}`}
-                            className="flex items-center justify-between gap-2 rounded-md bg-white/[0.04] px-3 py-2"
+                            className="flex items-center justify-between gap-2 rounded-md bg-white/4 px-3 py-2"
                           >
                             <span className="min-w-0 flex-1 break-all">{record.data}</span>
                             <div className="flex shrink-0 items-center gap-2">

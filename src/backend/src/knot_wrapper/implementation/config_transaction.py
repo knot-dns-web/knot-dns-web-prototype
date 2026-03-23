@@ -6,7 +6,7 @@ from .base_operations.config import get_config
 from .base_transaction import BaseTransaction, TransactionState
 
 from .task import DNSCommand, DNSTaskType, DNSCommit, DNSCommitType
-from .message_broker import DNSTaskProducer
+from .message_broker import DNSTaskProducer, get_configuration_version
 
 class KnotConfigTransaction(BaseTransaction):
     def __init__(
@@ -21,7 +21,16 @@ class KnotConfigTransaction(BaseTransaction):
         self._channel_name = channel_name
         self._task_buffer: list[DNSCommand] = list()
 
+        self._version = None
+
+    async def __get_version(self):
+        if self._version is not None:
+            return
+        
+        self._version = get_configuration_version()
+
     async def open(self):
+        await self.__get_version()
         await super().open()
     
     async def commit(self):
@@ -31,9 +40,11 @@ class KnotConfigTransaction(BaseTransaction):
                 DNSCommit(
                     type = DNSCommitType.conf,
                     zone_name = None,
-                    tasks = self._task_buffer
+                    tasks = self._task_buffer,
+                    versions = {"": self._version}
                 )
             )
+        self._task_buffer.clear()
         await super().commit()
 
     async def rollback(self):

@@ -48,9 +48,8 @@ app = FastAPI(
 app.add_middleware(LoggingMiddleware)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
-
-
+from .users.service import UserService
+user_service = UserService()
 
 app.include_router(zones_router, prefix="/zones", tags=["zones"])
 app.include_router(records_router, prefix="/records", tags=["records"])

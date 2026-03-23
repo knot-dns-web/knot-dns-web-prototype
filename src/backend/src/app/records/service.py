@@ -23,7 +23,7 @@ class RecordService:
         ctl.connect(default_knot_path)
 
         async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, None) as transaction:
-            results = transaction.get()
+            results = await transaction.get()
             return knot_zone_block_to_records(results)
 
     async def create_record(self, zone, owner, rtype, ttl, data):
