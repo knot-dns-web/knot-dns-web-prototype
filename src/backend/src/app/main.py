@@ -10,8 +10,6 @@ from contextlib import asynccontextmanager
 
 from .database import create_db_and_tables, init_db, get_async_session
 
-from ..knot_wrapper.implementation.synchronous import *
-
 from .zones.router import router as zones_router
 from .records.router import router as records_router
 from .auth.router import router as auth_router
@@ -20,7 +18,7 @@ from .logger.router import router as logger_router
 
 from .middleware.logger import LoggingMiddleware
 
-from ..knot_wrapper.implementation.asynchronous import DNSWorker
+from ..knot_wrapper.implementation import DNSWorker
 from .users.service import UserService
 
 redis_client = redis.from_url("redis://redis:6379")

@@ -9,7 +9,7 @@ from ..database import get_async_session
 router = APIRouter()
 
 
-@router.get("/", response_model=List[UserOut])
+@router.get("", response_model=List[UserOut])
 async def list_users(
     admin: dict = Depends(require_admin),
     session: AsyncSession = Depends(get_async_session)
@@ -95,15 +95,7 @@ async def update_user(
         )
         return updated_user
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.delete("/{username}", response_model=UserDeleteResponse)
@@ -112,6 +104,11 @@ async def delete_user(
     admin: dict = Depends(require_admin),
     session: AsyncSession = Depends(get_async_session)
 ):
+    #  if username == admin.get("sub"):
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="Нельзя удалить самого себя",
+    #     )
     try:
         service = UserService(session)
         await service.delete_user(username)

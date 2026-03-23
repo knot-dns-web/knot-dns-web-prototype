@@ -1,75 +1,105 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react";
-import Footer from "@/components/footer";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/header";
+import Footer from "@/components/footer";
+import ZonesTableHeader from "@/app/zones/ZonesTableHeader";
+import ZonesTableRows from "@/app/zones/ZonesTableRows";
+import { useZones } from "@/lib/hooks/zones";
+import { ZoneFormModal } from "@/components/modals/ZoneFormModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function ZonesPage() {
-  const [zones, setZones] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const {
+    zones,
+    loading,
+    error,
+    addZone,
+    removeZone,
+  } = useZones();
 
-  useEffect(() => {
-    const fetchZones = async () => {
-      try {
-        const response = await fetch("/api/zones");
-        if (!response.ok) throw new Error("Ошибка при загрузке данных");
-        
-        const data = await response.json();
-        setZones(data.zones || []);
-      } catch (error) {
-        console.error("Failed to fetch zones:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [zoneModalOpen, setZoneModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-    fetchZones();
-  }, []);
+  const handleAddZone = async (name: string) => {
+    await addZone(name);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    try {
+      await removeZone(deleteTarget);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Ошибка удаления");
+      throw e;
+    }
+  };
+
+  const handleOpenZone = useCallback(
+    (name: string) => {
+      router.push(`/zones/${encodeURIComponent(name)}`);
+    },
+    [router],
+  );
+
+  const sortedZones = useMemo(() => {
+    return [...zones].sort((a, b) =>
+      sortDirection === "asc"
+        ? a.localeCompare(b, "ru")
+        : b.localeCompare(a, "ru"),
+    );
+  }, [zones, sortDirection]);
 
   return (
     <div className="page">
       <Header />
 
-      <main className="main-container">
-        <section className="content-section">
-          <h1 className="page-title">Зоны</h1>
-          
-          <div className="zones-table">
-            <div className="table-header">
-              <span className="sortable">Название</span>
-            </div>
-            
-            <div className="table-body">
-              {loading ? (
-                <div className="table-row">Загрузка...</div>
-              ) : zones.length > 0 ? (
-                zones.map((zoneName, index) => (
-                  <div key={index} className="table-row">
-                    {zoneName}
-                  </div>
-                ))
-              ) : (
-                <div className="table-row">Список зон пуст</div>
-              )}
-            </div>
-          </div>
-        </section>
-      </main>
+      <div className="px-8 md:px-16 py-16">
+        <h1 className="text-[30px] font-bold mb-8">Зоны</h1>
+
+        <ZonesTableHeader
+          sortDirection={sortDirection}
+          onSort={() =>
+            setSortDirection((p) => (p === "asc" ? "desc" : "asc"))
+          }
+          onAddZone={() => setZoneModalOpen(true)}
+        />
+
+        {error ? (
+          <div className="text-red-400">{error}</div>
+        ) : (
+          <ZonesTableRows
+            zones={sortedZones}
+            loading={loading}
+            onDelete={(name) => setDeleteTarget(name)}
+            onOpen={handleOpenZone}
+          />
+        )}
+      </div>
 
       <Footer />
 
-      <style jsx>{`
-        .main-container { padding: 60px 10%; color: white; }
-        .page-title { font-size: 2rem; margin-bottom: 20px; }
-        .table-header { padding: 10px 20px; color: #fff; font-weight: bold; border-bottom: 1px solid #333; }
-        .table-row {  
-          padding: 15px 20px; 
-          margin-bottom: 8px; 
-          border-bottom: 1px solid #222;
-          color: #ccc;
+      <ZoneFormModal
+        open={zoneModalOpen}
+        onClose={() => setZoneModalOpen(false)}
+        onSubmit={handleAddZone}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Удаление зоны"
+        message={
+          deleteTarget
+            ? `Удалить зону «${deleteTarget}»? Это действие нельзя отменить.`
+            : ""
         }
-        .table-row:hover { background: #1a1a1a; }
-      `}</style>
+        confirmLabel="Удалить"
+      />
     </div>
   );
 }

@@ -2,10 +2,10 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.config import get_config
+from .base_operations.config import get_config
 from .base_transaction import BaseTransaction, TransactionState
 
-from .task import DNSTask, DNSTaskType, DNSCommit, DNSCommitType
+from .task import DNSCommand, DNSTaskType, DNSCommit, DNSCommitType
 from .message_broker import DNSTaskProducer
 
 class KnotConfigTransaction(BaseTransaction):
@@ -19,7 +19,7 @@ class KnotConfigTransaction(BaseTransaction):
         self.ctl = ctl
         self._redis_path = redis_path
         self._channel_name = channel_name
-        self._task_buffer: list[DNSTask] = list()
+        self._task_buffer: list[DNSCommand] = list()
 
     async def open(self):
         await super().open()
@@ -63,7 +63,7 @@ class KnotConfigTransaction(BaseTransaction):
         item: str | None = None,
         data: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.conf_set,
             data = {
                 "section": section,
@@ -80,7 +80,7 @@ class KnotConfigTransaction(BaseTransaction):
         identifier: str | None = None,
         item: str | None = None
     ):
-        task = DNSTask(
+        task = DNSCommand(
             type = DNSTaskType.conf_set,
             data = {
                 "section": section,
