@@ -15,6 +15,8 @@ from .logger.router import router as logger_router
 from .middleware.logger import LoggingMiddleware
 
 from ..knot_wrapper.implementation import DNSWorker
+from .users.service import UserService
+user_service = UserService()
 
 redis_client = redis.from_url("redis://redis:6379")
 CHANNEL_NAME = "DNSCommitAsync"

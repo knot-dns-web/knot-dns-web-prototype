@@ -1,46 +1,68 @@
+import uuid
 from locust import HttpUser, between, task
 
 class MyUser(HttpUser):
     wait_time = between(1, 5)  # Wait time between tasks in seconds
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.token = None
+        self.unique_id = uuid.uuid4().hex[:8]  # Unique ID for this user
+    
+    def on_start(self):
+        """Login when the user starts"""
+        response = self.client.post("/auth/login", data={
+            "username": "admin",
+            "password": "admin"
+        })
+        if response.status_code == 200:
+            self.token = response.json().get("access_token")
+        else:
+            print(f"Login failed: {response.status_code} - {response.text}")
+    
+    def get_headers(self):
+        """Get headers with authorization token"""
+        if self.token:
+            return {"Authorization": f"Bearer {self.token}"}
+        return {}
+    
+    @task
+    def create_zone_with_record(self):
+        """Create zone, create record, delete record, delete zone"""
+        zone_name = f"zone-{self.unique_id}."  # DNS zones should end with dot
+        owner_name = "test"
+        record_type = "A"
+        record_data = "192.168.1.1"
+        
+        # 1. Create zone
+        zone_data = {"name": zone_name}
+        self.client.post("/zones", json=zone_data, headers=self.get_headers())
+        
+        # 2. Create record in the zone
+        record_payload = {
+            "zone": zone_name,
+            "owner": owner_name,
+            "type": record_type,
+            "ttl": 3600,
+            "data": record_data
+        }
+        self.client.post("/records", json=record_payload, headers=self.get_headers())
+        
+        # 3. Delete record
+        self.client.delete(
+            f"/records/{zone_name}/{owner_name}/{record_type}?data={record_data}",
+            headers=self.get_headers()
+        )
+        
+        # 4. Delete zone
+        self.client.delete(f"/zones/{zone_name}", headers=self.get_headers())
 
-    @task(priority=1)
-    def create_zone(self):
-        data = {"name": "example-zone"}
-        self.client.post("/zones", json=data)  # Выполнение POST-запроса для создания зоны
-
-    @task(priority=2)
+    @task
     def get_zones(self):
-        self.client.get("/zones")  # Выполнение GET-запроса для получения списка зон
+        self.client.get("/zones", headers=self.get_headers())
 
-    @task(priority=3)
-    def delete_zone(self):
-        zone_name = "example-zone"  # Замените на фактическое имя зоны
-        self.client.delete(f"/zones/{zone_name}")  # Выполнение DELETE-запроса для удаления зоны
-
-    @task(priority=1)
-    def create_record(self):
-        data = {"zone": "example.com", "type": "A", "name": "test", "data": "192.168.1.1"}
-        self.client.post("/records", json=data)  # Выполнение POST-запроса для создания записи
-
-    @task(priority=2)
+    @task
     def get_records(self):
-        self.client.get("/records")  # Выполнение GET-запроса для получения списка записей
+        self.client.get("/records", headers=self.get_headers())
 
-    @task(priority=3)
-    def delete_record(self):
-        record_id = "123456"  # Замените на фактический ID записи, которую нужно удалить
-        self.client.delete(f"/records/{record_id}")  # Выполнение DELETE-запроса для удаления записи
-
-    @task(priority=1)
-    def create_user(self):
-        data = {"username": "example_user", "password": "password", "role": "user", "email": "example@example.com"}
-        self.client.post("/users", json=data)  # Выполнение POST-запроса для создания пользователя
-
-    @task(priority=2)
-    def get_users(self):
-        self.client.get("/users")  # Выполнение GET-запроса для получения списка пользователей
-
-    @task(priority=3)
-    def delete_user(self):
-        username = "example_user"  # Замените на фактическое имя пользователя
-        self.client.delete(f"/users/{username}")  # Выполнение DELETE-запроса для удаления пользователя
+  
