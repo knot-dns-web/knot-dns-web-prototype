@@ -69,7 +69,7 @@ export default function ZonesPage() {
         />
 
         {error ? (
-          <div className="text-red-400">{error}</div>
+          <div className="text-(--critical)">{error}</div>
         ) : (
           <ZonesTableRows
             zones={sortedZones}
@@ -95,7 +95,7 @@ export default function ZonesPage() {
         title="Удаление зоны"
         message={
           deleteTarget
-            ? `Удалить зону «${deleteTarget}»? Это действие нельзя отменить.`
+            ? `Удалить зону «${deleteTarget}»? Это действие нельзя отменить`
             : ""
         }
         confirmLabel="Удалить"

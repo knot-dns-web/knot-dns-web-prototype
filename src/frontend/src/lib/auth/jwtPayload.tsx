@@ -4,7 +4,6 @@ export type JwtClaims = {
   exp?: number;
 };
 
-/** Чтение полей JWT для UI (без проверки подписи; API проверяет токен). */
 export function decodeJwtPayload(token: string | null): JwtClaims | null {
   if (!token) return null;
   try {

@@ -9,10 +9,10 @@ export default function ControlPage() {
   const { isAdmin } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="page min-h-screen">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="grid grid-cols-3 gap-6 w-full max-w-3xl auto-rows-fr">
           <Link href="/zones" className="card col-start-1 row-start-1">
             Зоны
@@ -22,12 +22,12 @@ export default function ControlPage() {
             Записи
           </Link>
 
-          <button
-            type="button"
+          <Link
+            href="/logs"
             className="card col-start-2 row-start-1 row-span-2 px-4"
           >
             Просмотр истории изменений
-          </button>
+          </Link>
 
           <button
             type="button"
@@ -53,7 +53,7 @@ export default function ControlPage() {
             </>
           ) : null}
         </div>
-      </main>
+      </div>
 
       <Footer />
     </div>

@@ -29,7 +29,8 @@ export function useRecords(zoneName: string) {
 
   useEffect(() => {
     if (!zoneName) return;
-    loadRecords();
+    const id = window.setTimeout(() => loadRecords(), 0);
+    return () => window.clearTimeout(id);
   }, [zoneName, loadRecords]);
 
   const addRecord = useCallback(async (payload: Omit<DnsRecord, "zone">) => {

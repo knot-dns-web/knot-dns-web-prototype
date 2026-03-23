@@ -1,4 +1,3 @@
-/** Ключ должен совпадать с тем, что пишет AuthProvider при входе */
 export const AUTH_TOKEN_STORAGE_KEY = "knot_access_token";
 
 export function getAccessToken(): string | null {

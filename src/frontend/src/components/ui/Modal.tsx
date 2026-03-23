@@ -8,7 +8,6 @@ type ModalProps = {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
-  /** Ширина контента */
   size?: "md" | "lg";
 };
 
@@ -34,7 +33,7 @@ export function Modal({
   const maxW = size === "lg" ? "max-w-xl" : "max-w-md";
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
       <button
         type="button"
         className="absolute inset-0 bg-slate-950/55 backdrop-blur-md"

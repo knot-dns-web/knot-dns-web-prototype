@@ -29,7 +29,7 @@ export default function ZonesTableHeader({
 
       <button
         onClick={onAddZone}
-        className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm"
+        className="px-4 py-2 rounded-md bg-(--accenture) hover:bg-(hover-accenture) transition-colors text-sm"
       >
         Добавить зону
       </button>

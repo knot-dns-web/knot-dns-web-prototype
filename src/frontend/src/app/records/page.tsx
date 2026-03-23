@@ -62,7 +62,7 @@ export default function RecordsPage() {
   });
 
   return (
-    <div className="page min-h-screen bg-slate-950 text-slate-100">
+    <div className="page min-h-screen">
       <Header />
 
       <div className="px-8 md:px-16 py-16">
@@ -74,7 +74,7 @@ export default function RecordsPage() {
               setEditing(null);
               setModalOpen(true);
             }}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500"
+            className="rounded-md bg-(--accenture) px-4 py-2 text-sm font-semibold hover:bg-(--hover-accenture)"
           >
             Добавить запись
           </button>
@@ -82,25 +82,25 @@ export default function RecordsPage() {
 
         {loading && (
           <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-12 rounded-lg bg-white/5 animate-pulse" />
             ))}
           </div>
         )}
 
         {!loading && error && (
-          <div className="text-red-400">{error}</div>
+          <div className="text-(--critical)">{error}</div>
         )}
 
         {!loading && !error && sorted.length === 0 && (
-          <p className="text-slate-400">Нет записей.</p>
+          <p className="text-(--light-text)">Нет записей.</p>
         )}
 
         {!loading && !error && sorted.length > 0 && (
           <div className="overflow-x-auto rounded-lg border border-white/10">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-180 text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.04] text-slate-400">
+                <tr className="border-b border-white/10 bg-white/4 text-(--light-text)">
                   <th className="px-4 py-3 font-medium">Зона</th>
                   <th className="px-4 py-3 font-medium">Владелец</th>
                   <th className="px-4 py-3 font-medium">Тип</th>
@@ -113,7 +113,7 @@ export default function RecordsPage() {
                 {sorted.map((r, idx) => (
                   <tr
                     key={`${r.zone}-${r.owner}-${r.type}-${r.data}-${idx}`}
-                    className="border-b border-white/5 hover:bg-white/[0.03]"
+                    className="border-b border-white/5 hover:bg-white/3"
                   >
                     <td className="px-4 py-3">{r.zone}</td>
                     <td className="px-4 py-3">{ownerDisplay(r.owner, r.zone)}</td>
@@ -128,16 +128,14 @@ export default function RecordsPage() {
                             setEditing(r);
                             setModalOpen(true);
                           }}
-                          className="text-slate-400 hover:text-emerald-400"
-                          aria-label="Редактировать"
+                          className="text-(--accenture)"
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(r)}
-                          className="text-red-500 hover:text-red-400"
-                          aria-label="Удалить"
+                          className="text-(--critical)"
                         >
                           <Trash2 size={16} />
                         </button>

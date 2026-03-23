@@ -17,9 +17,7 @@ type RecordFormModalProps = {
   open: boolean;
   onClose: () => void;
   zones: string[];
-  /** Если задано — зона фиксирована (страница конкретной зоны) */
   fixedZone?: string | null;
-  /** Редактирование: исходная запись (wire owner) */
   initial?: DnsRecord | null;
   onSubmit: (
     values: RecordFormValues,

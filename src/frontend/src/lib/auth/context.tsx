@@ -19,9 +19,7 @@ import { decodeJwtPayload } from "@/lib/auth/jwtPayload";
 export type AuthContextValue = {
   token: string | null;
   isAuthenticated: boolean;
-  /** true после чтения localStorage на клиенте */
   isReady: boolean;
-  /** Никнейм из JWT (sub) */
   username: string | null;
   role: string | null;
   isAdmin: boolean;

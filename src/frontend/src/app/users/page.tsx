@@ -47,7 +47,8 @@ export default function UsersPage() {
       router.replace("/control");
       return;
     }
-    load();
+    const id = window.setTimeout(() => load(), 0);
+    return () => window.clearTimeout(id);
   }, [isReady, isAuthenticated, isAdmin, router, load]);
 
   const handleUserSubmit = async (

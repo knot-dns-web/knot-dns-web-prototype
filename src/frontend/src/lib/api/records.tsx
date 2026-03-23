@@ -8,10 +8,6 @@ export interface DnsRecord {
   data: string;
 }
 
-/**
- * Ответ Knot/libknot часто вложенный, напр. { zone: { "ccc.": [ ... ] } }.
- * Собираем пары (имя_зоны, массив записей) с любого уровня вложенности.
- */
 function collectZoneRecordArrays(
   payload: unknown,
   depth = 0,

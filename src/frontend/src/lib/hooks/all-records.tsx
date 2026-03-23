@@ -23,7 +23,8 @@ export function useAllRecords() {
   }, []);
 
   useEffect(() => {
-    reload();
+    const id = window.setTimeout(() => reload(), 0);
+    return () => window.clearTimeout(id);
   }, [reload]);
 
   const addRecord = useCallback(

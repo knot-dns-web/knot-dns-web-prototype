@@ -2,18 +2,18 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import InfoBlock from "./info-block";
 import Link from "next/link";
-import StartManagementButton from "./start-management-button";
+import StartManagementButton from "../../components/start-management-button";
 
 export default function HomePage() {
   return (
     <div className="page">
       <Header />
 
-      <main className="home-main">
-        <section className="text-center flex flex-col items-center w-full gap-3 mb-10">
-          <p className="home-title">KNOT DeNiS.ru</p>
-          <p className="home-subtitle">Самый крутой курсовой проект</p>
-        </section>
+      <div className="flex-1 flex flex-col items-center p-24">
+        <div className="text-center flex flex-col items-center w-full gap-3 mb-10">
+          <p className="font-semibold text-3xl leading-tight">Manager KNOT DNS</p>
+          <p className="text-sm text-(--light-text)">Групповой курсовой проект студентов 3 курса НИУ ВШЭ - Пермь</p>
+        </div>
 
         <div className="flex justify-center gap-3">
           <StartManagementButton />
@@ -23,11 +23,13 @@ export default function HomePage() {
           >
             <span>Исходный код на GitHub</span>
           </Link>
-          <button className="home-btn home-btn-outline">Open-source сервер</button>
+          <Link 
+            href="https://www.knot-dns.cz"
+            className="home-btn home-btn-outline">Open-source сервер</Link>
         </div>
 
         <InfoBlock />
-      </main>
+      </div>
 
       <Footer />
     </div>

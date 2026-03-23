@@ -1,10 +1,15 @@
 @import "tailwindcss";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-  }
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --accenture: #00a972;
+  --hover-accenture: #0d9668;
+  --light-accenture: #00a97132;
+  --info-block: #1c212cb3;
+  --hover: #151f36bc;
+  --light-text: #94a3b8;
+  --critical: #f33d3d;
 }
 
 body {
@@ -18,33 +23,13 @@ body {
   flex-direction: column;
 }
 
-.home-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6rem;
-}
-
-.home-title {
-  font-weight: 600;
-  font-size: 1.875rem;
-  line-height: 1.2;
-}
-
-.home-subtitle {
-  font-size: 0.875rem;
-  color: #94a3b8;
-}
-
 .home-btn {
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 500;
-  max-width:max-content;
+  max-width: max-content;
   font-size: 0.875rem;
-  transition: transform 140ms ease, background-color 140ms ease, color 140ms ease,
-    border-color 140ms ease;
+  transition: all 140ms ease;;
   cursor: pointer;
 }
 
@@ -57,18 +42,17 @@ body {
 }
 
 .home-btn-primary {
-  background: #10b981;
-  border: 1px solid transparent;
+  background: var(--accenture);
   color: var(--background);
 }
 
 .home-btn-outline {
-  background: transparent;
+  background: var(--background);
   border: 1px solid #1e293b;
 }
 
 .home-btn-outline:hover {
-  background: rgba(15, 23, 42, 0.6)
+  background: var(--hover)
 }
 
 .app-glass {
@@ -86,11 +70,11 @@ body {
 @layer components {
   .card {
     @apply flex items-center justify-center text-center
-           bg-slate-800 border border-slate-700
+           bg-(--info-block)
            rounded-xl
            min-h-27.5
            transition-all duration-200
-           hover:bg-slate-700 hover:scale-[1.02]
+           hover:bg-(--hover) hover:scale-[1.02]
            active:scale-[0.97];
   }
 }

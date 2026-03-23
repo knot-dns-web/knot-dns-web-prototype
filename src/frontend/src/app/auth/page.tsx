@@ -62,24 +62,24 @@ export default function AuthPage() {
 
   if (!isReady || isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#0b0e14] text-white">
+      <div className="min-h-screen flex flex-col bg-(--background)">
         <Header variant="minimal" />
-        <main className="flex-1 flex items-center justify-center pt-16 pb-24">
-          <p className="text-slate-400">Загрузка…</p>
-        </main>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-(--light-text)">Загрузка…</p>
+        </div>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0e14] text-white">
+    <div className="page min-h-screen">
       <Header variant="minimal" />
 
-      <main className="flex-1 flex items-center justify-center px-4 pt-20 pb-28">
+      <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-10 lg:gap-14 w-full max-w-4xl">
-          <div className="w-full max-w-md mx-auto lg:mx-0 rounded-lg bg-[#22252c] p-8 shadow-xl border border-white/5">
-            <h1 className="text-center text-xl font-bold text-white mb-8">
+          <div className="w-full max-w-md mx-auto lg:mx-0 rounded-lg bg-(--info-block) p-8">
+            <h1 className="text-center text-xl font-bold mb-8">
               Авторизация
             </h1>
 
@@ -87,7 +87,7 @@ export default function AuthPage() {
               <div>
                 <label
                   htmlFor="auth-login"
-                  className="block text-sm text-slate-400 mb-2"
+                  className="block text-sm text-(--light-text) mb-2"
                 >
                   Логин
                 </label>
@@ -98,7 +98,7 @@ export default function AuthPage() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-lg bg-[#3b3e46] border border-slate-600/40 px-3 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  className="w-full rounded-lg bg-(--light-text)/20 px-3 py-2.5"
                   required
                 />
               </div>
@@ -106,7 +106,7 @@ export default function AuthPage() {
               <div>
                 <label
                   htmlFor="auth-password"
-                  className="block text-sm text-slate-400 mb-2"
+                  className="block text-sm text-(--light-text) mb-2"
                 >
                   Пароль
                 </label>
@@ -117,13 +117,13 @@ export default function AuthPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg bg-[#3b3e46] border border-slate-600/40 px-3 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  className="w-full rounded-lg bg-(--light-text)/20 px-3 py-2.5"
                   required
                 />
               </div>
 
               {error ? (
-                <p className="text-sm text-red-400" role="alert">
+                <p className="text-sm text-(--critical)" role="alert">
                   {error}
                 </p>
               ) : null}
@@ -132,7 +132,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-lg bg-[#10b981] hover:bg-[#0d9668] disabled:opacity-60 disabled:pointer-events-none text-slate-950 font-semibold px-8 py-2.5 text-sm transition-colors"
+                  className="home-btn home-btn-primary"
                 >
                   {submitting ? "Вход…" : "Войти"}
                 </button>
@@ -140,11 +140,11 @@ export default function AuthPage() {
             </form>
           </div>
 
-          <p className="text-white text-center lg:text-left text-base lg:text-lg leading-relaxed lg:max-w-sm lg:flex-1 self-center">
+          <p className="text-(--light-text) text-center lg:text-left text-base lg:text-lg leading-relaxed lg:max-w-sm lg:flex-1 self-center">
             Для получения доступа к системе обратитесь к администратору
           </p>
         </div>
-      </main>
+      </div>
 
       <Footer />
     </div>

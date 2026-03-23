@@ -17,7 +17,7 @@ export default function ZonesTableRows({
     return (
       <div className="space-y-2">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="w-full h-14 bg-white/5 rounded-lg animate-pulse" />
+          <div key={i} className="w-full h-14 bg-(--info-block) rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -30,8 +30,8 @@ export default function ZonesTableRows({
           key={zone}
           onClick={() => onOpen(zone)}
           className="flex items-center justify-between w-full px-6 py-4
-                     bg-white/[0.07] rounded-lg text-white text-2xl
-                     hover:bg-white/10 transition-colors cursor-pointer"
+                     bg-(--info-block) rounded-lg text-2xl
+                     hover:bg-(--hover) transition-colors cursor-pointer"
         >
           <span>{zone}</span>
 
@@ -40,7 +40,7 @@ export default function ZonesTableRows({
               e.stopPropagation();
               onDelete(zone);
             }}
-            className="text-red-500 hover:text-red-400 transition-colors"
+            className="text-(--critical)"
           >
             <Trash size={18} />
           </button>

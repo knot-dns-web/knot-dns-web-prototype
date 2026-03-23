@@ -22,13 +22,12 @@ export default function ServerSettingsPage() {
   }, [isReady, isAuthenticated, isAdmin, router]);
 
   return (
-    <div className="page min-h-screen bg-slate-950 text-slate-100">
+    <div className="page min-h-screen">
       <Header />
-      <div className="px-8 md:px-16 py-16 max-w-2xl">
+      <div className="px-8 py-16 max-w-2xl">
         <h1 className="text-[30px] font-bold mb-4">Настройки сервера</h1>
-        <p className="text-slate-400">
-          Раздел в разработке. Здесь будут параметры конфигурации Knot и
-          связанных сервисов.
+        <p className="text-(--light-text)">
+          Раздел в разработке...
         </p>
       </div>
       <Footer />
