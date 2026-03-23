@@ -5,7 +5,7 @@ from src.src.app.main import app
 
 # Импортируем реализации для Knot
 from src.src.knot_wrapper.implementation.synchronous import *
-from src.src.knot_wrapper.transaction import set_knot_connection_path
+from src.src.knot_wrapper.transaction import set_knot_connection_path # пути такие, из-за того, что запуск будет в контейнере, а там другой путь к сокету
 
 # Читаем путь к сокету из переменной окружения Docker (по умолчанию /run/knot/knot.sock)
 knot_socket = os.getenv("KNOT_SOCKET", "/run/knot/knot.sock")
