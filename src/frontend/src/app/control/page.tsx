@@ -22,12 +22,12 @@ export default function ControlPage() {
             Записи
           </Link>
 
-          <button
-            type="button"
+          <Link
+            href="/logs"
             className="card col-start-2 row-start-1 row-span-2 px-4"
           >
             Просмотр истории изменений
-          </button>
+          </Link>
 
           <button
             type="button"
