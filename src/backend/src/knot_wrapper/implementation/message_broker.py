@@ -13,7 +13,7 @@ from ..error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtlE
 from .task import DNSCommit, DNSTaskType, DNSCommitType
 
 from .base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
-from .base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
+from .base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone, status_zone
 
 class Task(BaseModel):
     id: str
@@ -27,6 +27,21 @@ class TaskResult(BaseModel):
 class TaskError(Exception):
     pass
 
+_global_configuration_version = 0
+def get_configuration_version():
+    global _global_configuration_version
+    return _global_configuration_version
+
+class VersionConflictError(Exception):
+    def __init__(self, object: str, old_version: int | None, new_version: int | None) -> None:
+        super().__init__()
+        self.object = object
+        self.old_version = old_version
+        self.new_version = new_version
+
+    def __str__(self) -> str:
+        return f"Version of {self.object} had version {self.old_version} but already having version {self.new_version}"
+
 class DNSWorker:
     def __init__(
         self,
@@ -38,7 +53,41 @@ class DNSWorker:
         self._socket_path = socket_path
         self._channel = channel
 
+    def __get_current_zone_versions(self, ctl: KnotCtl, zone_name: str | None):
+        versions: dict[str, int | None] = {}
+        serial_data = status_zone(ctl, zone_name, "+serial")
+        for per_zone_name in serial_data: # can be many serials by zone_name "--" (None)
+            values = serial_data[per_zone_name]
+            serial = values['serial']
+            if serial == '-':
+                versions[per_zone_name] = None
+            else:
+                serial_int = int(serial)
+                versions[per_zone_name] = serial_int
+        return versions
+
+    def __compare_zone_versions(
+        self,
+        object: str,
+        old_versions: dict[str, int | None],
+        new_versions: dict[str, int | None]
+    ):
+        for version_zone_name, new_version in new_versions.items():
+            if version_zone_name not in old_versions:
+                continue
+            old_version = old_versions[version_zone_name]
+            if (
+                (new_version is None and old_version is None) or
+                (new_version is not None and old_version is not None)
+            ):
+                continue
+            
+            if new_version is None or old_version is None or new_version < old_version: 
+                raise VersionConflictError(object, old_version, new_version)
+
     def __apply_commit(self, commit: DNSCommit):
+        global _global_configuration_version
+
         ctl = KnotCtl()
         ctl.connect(self._socket_path)
 
@@ -49,11 +98,11 @@ class DNSWorker:
         is_conf = commit_type == DNSCommitType.conf
         is_committed = False
 
+        abort_config(ctl)
+        abort_zone(ctl)
         if is_conf:
-            abort_config(ctl)
             begin_config(ctl)
         else:
-            abort_zone(ctl)
             begin_zone(ctl, zone_name)
         try:
             for task in tasks:
@@ -70,8 +119,24 @@ class DNSWorker:
                         backup_zone(ctl, **task.data)
                     case DNSTaskType.zone_restore:
                         restore_zone(ctl, **task.data)
+
+            if is_conf:
+                old_version = commit.versions[""]
+                new_version = _global_configuration_version
+
+                if old_version is None:
+                    raise Exception
+
+                if new_version < old_version: 
+                    raise VersionConflictError(f"zone {zone_name}", old_version, new_version)
+            else:
+                old_versions = commit.versions
+                new_versions = self.__get_current_zone_versions(ctl, zone_name)
+                self.__compare_zone_versions(f"zone {zone_name}", old_versions, new_versions)
+
             is_committed = True
             if is_conf:
+                _global_configuration_version += 1
                 commit_config(ctl)
             else:
                 commit_zone(ctl, zone_name)

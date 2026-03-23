@@ -22,3 +22,4 @@ class DNSCommit(BaseModel):
     type: DNSCommitType
     zone_name: str | None
     tasks: list[DNSCommand]
+    versions: dict[str, int | None]
