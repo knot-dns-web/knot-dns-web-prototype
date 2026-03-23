@@ -2,12 +2,9 @@ from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
 import os
-import threading
 import asyncio
 import redis.asyncio as redis
 from contextlib import asynccontextmanager
-
-from ..knot_wrapper.implementation.synchronous import *
 
 from .zones.router import router as zones_router
 from .records.router import router as records_router
@@ -17,15 +14,7 @@ from .logger.router import router as logger_router
 
 from .middleware.logger import LoggingMiddleware
 
-app = FastAPI(
-    title="Knot DNS Manager",
-    version="1.0.0"
-)
-
-# app.add_middleware(LoggingMiddleware)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-from ..knot_wrapper.implementation.asynchronous import DNSWorker
+from ..knot_wrapper.implementation import DNSWorker
 
 redis_client = redis.from_url("redis://redis:6379")
 CHANNEL_NAME = "DNSCommitAsync"
@@ -36,7 +25,7 @@ async def lifespan(app: FastAPI):
     
     socket_path = os.environ.get("KNOT_SOCKET", "/run/knot/knot.sock")
 
-    user_service.create_user("admin", "admin", role="admin")
+    await user_service.create_user("admin", "admin", role="admin")
 
     worker = DNSWorker(redis_client, CHANNEL_NAME, socket_path)
     task = asyncio.create_task(worker.run())
@@ -55,6 +44,7 @@ app = FastAPI(
 )
 
 app.add_middleware(LoggingMiddleware)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 from .users.service import UserService
 user_service = UserService()

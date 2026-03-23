@@ -12,23 +12,23 @@ service = ZoneService()
 
 
 @router.get("")
-def list_zones(user: dict = Depends(get_current_user)):
-    return {"zones": service.list_zones()}
+async def list_zones(user: dict = Depends(get_current_user)):
+    return {"zones": await service.list_zones()}
 
 
 @router.post("")
-def create_zone(zone: ZoneCreate, user: dict = Depends(get_current_user)):
+async def create_zone(zone: ZoneCreate, user: dict = Depends(get_current_user)):
     try:
-        service.create_zone(zone.name)
+        await service.create_zone(zone.name)
         return {"status": "created"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/{zone_name}")
-def delete_zone(zone_name: str, user: dict = Depends(get_current_user)):
+async def delete_zone(zone_name: str, user: dict = Depends(get_current_user)):
     try:
-        service.delete_zone(zone_name)
+        await service.delete_zone(zone_name)
         return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -45,9 +45,9 @@ def delete_zone(zone_name: str, user: dict = Depends(get_current_user)):
 
 from fastapi.responses import Response
 @router.get("/{zone_name}/export")
-def export_zone(zone_name: str, user: dict = Depends(get_current_user)):
+async def export_zone(zone_name: str, user: dict = Depends(get_current_user)):
     try:
-        data = service.export_zone(zone_name)
+        data = await service.export_zone(zone_name)
         return Response(
             content=data,
             media_type="text/plain",
@@ -59,9 +59,9 @@ def export_zone(zone_name: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/import")
-def import_zone(zone: ZoneImport, user: dict = Depends(get_current_user)):
+async def import_zone(zone: ZoneImport, user: dict = Depends(get_current_user)):
     try:
-        service.import_zone(zone.name, zone.content)
+        await service.import_zone(zone.name, zone.content)
         return {"status": "imported"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -51,7 +51,6 @@ def set_config(
         item=item, # type: ignore
         data=data # type: ignore
     )
-    print("conf-set", section, identifier, item,data)
     ctl.receive_block()
 
 def unset_config(

@@ -106,3 +106,13 @@ def restore_zone(
         data=dir_path # type: ignore
     )
     ctl.receive_block()
+
+def flush_zone(
+    ctl: KnotCtl,
+    zone: str | None = None
+):
+    ctl.send_block(
+        cmd="zone-flush", 
+        zone=zone, # type: ignore
+    )
+    ctl.receive_block()

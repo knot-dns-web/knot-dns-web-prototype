@@ -1,4 +1,4 @@
-from ...knot_wrapper.implementation.synchronous import (
+from ...knot_wrapper.implementation import (
     get_knot_zone_transaction
 )
 
@@ -18,15 +18,15 @@ CHANNEL_NAME = "DNSCommitAsync"
 
 class RecordService:
 
-    def list_records(self):        
+    async def list_records(self):        
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
-        with get_knot_zone_transaction(ctl, None) as transaction:
-            results = transaction.get()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, None) as transaction:
+            results = await transaction.get()
             return knot_zone_block_to_records(results)
 
-    def create_record(self, zone, owner, rtype, ttl, data):
+    async def create_record(self, zone, owner, rtype, ttl, data):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
@@ -34,11 +34,11 @@ class RecordService:
         own = normalize_knot_owner(owner, z)
         rt = normalize_knot_rr_type(rtype)
 
-        with get_knot_zone_transaction(ctl, z) as transaction:
-            transaction.set(z, own, rt, str(ttl), data)
-            transaction.commit()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, z) as transaction:
+            await transaction.set(z, own, rt, str(ttl), data)
+            await transaction.commit()
 
-    def delete_record(self, zone, owner, rtype, data=None):
+    async def delete_record(self, zone, owner, rtype, data=None):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
@@ -47,11 +47,11 @@ class RecordService:
         rt = normalize_knot_rr_type(rtype)
         unset_data = data if data not in (None, "") else None
 
-        with get_knot_zone_transaction(ctl, z) as transaction:
-            transaction.unset(z, own, rt, unset_data)
-            transaction.commit()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, z) as transaction:
+            await transaction.unset(z, own, rt, unset_data)
+            await transaction.commit()
 
-    def update_record(
+    async def update_record(
         self,
         zone,
         old_owner,
@@ -72,10 +72,10 @@ class RecordService:
         nt = normalize_knot_rr_type(new_type)
         unset_data = old_data if old_data not in (None, "") else None
 
-        with get_knot_zone_transaction(ctl, z) as transaction:
-            transaction.unset(z, oo, ot, unset_data)
-            transaction.set(z, no, nt, str(ttl), new_data)
-            transaction.commit()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, z) as transaction:
+            await transaction.unset(z, oo, ot, unset_data)
+            await transaction.set(z, no, nt, str(ttl), new_data)
+            await transaction.commit()
 
 '''
 {

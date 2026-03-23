@@ -2,7 +2,7 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.zone import get_zone, status_zone
+from .base_operations.zone import get_zone, status_zone
 from .base_transaction import BaseTransaction, TransactionState
 
 from .task import DNSCommand, DNSTaskType, DNSCommit, DNSCommitType
@@ -22,8 +22,24 @@ class KnotZoneTransaction(BaseTransaction):
         self._zone_name = zone_name
         self._channel_name = channel_name
         self._task_buffer: list[DNSCommand] = list()
+        self._versions: dict[str, int | None] = {}
+
+    async def __get_version(self):
+        if self._versions is not None:
+            return
+        
+        serial_data = await self.status(self._zone_name, "+serial")
+        for zone_name in serial_data: # can be many serials by zone_name "--" (None)
+            values = serial_data[zone_name]
+            serial = values['serial']
+            if serial == '-':
+                self._versions[zone_name] = None
+            else:
+                serial_int = int(serial)
+                self._versions[zone_name] = serial_int
 
     async def open(self):
+        await self.__get_version()
         await super().open()
     
     async def commit(self):
@@ -33,9 +49,12 @@ class KnotZoneTransaction(BaseTransaction):
                 DNSCommit(
                     type = DNSCommitType.zone,
                     zone_name = self._zone_name,
-                    tasks = self._task_buffer
+                    tasks = self._task_buffer,
+                    versions = self._versions
                 )
             )
+        self._task_buffer.clear()
+        self._versions.clear()
         await super().commit()
 
     async def rollback(self):
