@@ -13,7 +13,7 @@ from ...error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtl
 from .task import DNSCommit, DNSTaskType, DNSCommitType
 
 from ..base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
-from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
+from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone, flush_zone
 
 class Task(BaseModel):
     id: str
@@ -72,6 +72,7 @@ class DNSWorker:
                 commit_config(ctl)
             else:
                 commit_zone(ctl, zone_name)
+                flush_zone(ctl, zone_name)
             is_committed = True
         finally:
             if not is_committed:

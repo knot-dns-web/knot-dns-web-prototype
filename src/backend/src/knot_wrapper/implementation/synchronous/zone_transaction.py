@@ -1,7 +1,7 @@
 from libknot.control import KnotCtl
 from contextlib import contextmanager
 
-from ..base_operations.zone import get_zone, set_zone, unset_zone, begin_zone, abort_zone, commit_zone, status_zone, backup_zone, restore_zone
+from ..base_operations.zone import get_zone, set_zone, unset_zone, begin_zone, abort_zone, commit_zone, status_zone, backup_zone, restore_zone, flush_zone
 from .base_transaction import BaseTransaction, TransactionState
 
 from ...error.base_error import KnotError, KnotCtlError
@@ -26,6 +26,7 @@ class KnotZoneTransaction(BaseTransaction):
     def commit(self):
         try:
             commit_zone(self.ctl, self.zone_name)
+            flush_zone(self.ctl, self.zone_name)
             super().commit()
         except KnotCtlError as e:
             raise KnotError.from_raw_error(e)

@@ -29,6 +29,11 @@ COPY ./pytest.ini /app/pytest.ini
 COPY ./check_knot.py /app/check_knot.py
 COPY ./run_check.sh /app/run_check.sh
 
+# for Knot
+COPY ./src/backend/knot.conf /etc/knot/knot.conf
+RUN mkdir -p /var/lib/knot
+RUN chown -R knot:knot /var/lib/knot
+
 # Setup entrypoint
 COPY ./src/backend/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
