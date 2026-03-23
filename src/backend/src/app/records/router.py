@@ -10,14 +10,14 @@ service = RecordService()
 
 
 @router.get("")
-def list_records(user: dict = Depends(get_current_user)):
-    return {"records": service.list_records()}
+async def list_records(user: dict = Depends(get_current_user)):
+    return {"records": await service.list_records()}
 
 
 @router.post("")
-def create_record(record: RecordCreate, user: dict = Depends(get_current_user)):
+async def create_record(record: RecordCreate, user: dict = Depends(get_current_user)):
     try:
-        service.create_record(
+        await service.create_record(
             record.zone,
             record.owner,
             record.type,
@@ -30,9 +30,9 @@ def create_record(record: RecordCreate, user: dict = Depends(get_current_user)):
     
 
 @router.delete("/{zone}/{owner}/{rtype}")
-def delete_record(zone: str, owner: str, rtype: str, user: dict = Depends(get_current_user)):
+async def delete_record(zone: str, owner: str, rtype: str, user: dict = Depends(get_current_user)):
     try:
-        service.delete_record(zone, owner, rtype)
+        await service.delete_record(zone, owner, rtype)
         return {"status": "deleted"}
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))

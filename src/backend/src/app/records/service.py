@@ -1,4 +1,4 @@
-from ...knot_wrapper.implementation.synchronous import (
+from ...knot_wrapper.implementation import (
     get_knot_zone_transaction
 )
 
@@ -11,30 +11,30 @@ CHANNEL_NAME = "DNSCommitAsync"
 
 class RecordService:
 
-    def list_records(self):        
+    async def list_records(self):        
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
-        with get_knot_zone_transaction(ctl, None) as transaction:
-            results = transaction.get()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, None) as transaction:
+            results = await transaction.get()
 
             return results
 
-    def create_record(self, zone, owner, rtype, ttl, data):
+    async def create_record(self, zone, owner, rtype, ttl, data):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
-        with get_knot_zone_transaction(ctl, zone) as transaction:
-            transaction.set(zone, owner, rtype, str(ttl), data)
-            transaction.commit()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, zone) as transaction:
+            await transaction.set(zone, owner, rtype, str(ttl), data)
+            await transaction.commit()
 
-    def delete_record(self, zone, owner, rtype):
+    async def delete_record(self, zone, owner, rtype):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
-        with get_knot_zone_transaction(ctl, zone) as transaction:
-            transaction.unset(zone, owner, rtype)
-            transaction.commit()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, zone) as transaction:
+            await transaction.unset(zone, owner, rtype)
+            await transaction.commit()
 
 '''
 {

@@ -2,7 +2,7 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.config import get_config
+from .base_operations.config import get_config
 from .base_transaction import BaseTransaction, TransactionState
 
 from .task import DNSTask, DNSTaskType, DNSCommit, DNSCommitType
@@ -81,7 +81,7 @@ class KnotConfigTransaction(BaseTransaction):
         item: str | None = None
     ):
         task = DNSTask(
-            type = DNSTaskType.conf_set,
+            type = DNSTaskType.conf_unset,
             data = {
                 "section": section,
                 "identifier": identifier,
