@@ -8,12 +8,12 @@ import uuid
 
 from libknot.control import KnotCtl
 
-from ...error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtlError
+from ..error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtlError
 
 from .task import DNSCommit, DNSTaskType, DNSCommitType
 
-from ..base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
-from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
+from .base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
+from .base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
 
 class Task(BaseModel):
     id: str

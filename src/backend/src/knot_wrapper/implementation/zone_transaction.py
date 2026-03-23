@@ -2,7 +2,7 @@ from libknot.control import KnotCtl
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
 
-from ..base_operations.zone import get_zone, status_zone
+from .base_operations.zone import get_zone, status_zone
 from .base_transaction import BaseTransaction, TransactionState
 
 from .task import DNSCommand, DNSTaskType, DNSCommit, DNSCommitType

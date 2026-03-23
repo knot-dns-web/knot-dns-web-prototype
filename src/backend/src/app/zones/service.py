@@ -1,4 +1,4 @@
-from ...knot_wrapper.implementation.synchronous import (
+from ...knot_wrapper.implementation import (
     get_knot_config_transaction,
     get_knot_zone_transaction
 )
@@ -16,7 +16,7 @@ CHANNEL_NAME = "DNSCommitAsync"
 
 class ZoneService:
 
-    def create_zone(self, name: str):
+    async def create_zone(self, name: str):
         global default_knot_path, redis_path
 
         validate_zone_name(name)
@@ -26,12 +26,12 @@ class ZoneService:
         ctl.connect(default_knot_path)
 
         # создаём зону
-        with get_knot_config_transaction(ctl) as transaction:
-            transaction.set("zone", name)
-            transaction.commit()
+        async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
+            await transaction.set("zone", name)
+            await transaction.commit()
         
         # добавляем записи NS и SOA
-        with get_knot_zone_transaction(ctl, name) as transaction:
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, name) as transaction:
 
             # Убираем точку из имени зоны для формирования имен NS серверов
             zone_without_dot = name.rstrip('.')
@@ -40,26 +40,26 @@ class ZoneService:
             ns1 = f"ns1.{zone_without_dot}."
             ns2 = f"ns2.{zone_without_dot}."
 
-            transaction.set(zone_without_dot, "@", "NS", "3600", ns1)
-            transaction.set(zone_without_dot, "@", "NS", "3600", ns2)
+            await transaction.set(zone_without_dot, "@", "NS", "3600", ns1)
+            await transaction.set(zone_without_dot, "@", "NS", "3600", ns2)
 
-            transaction.set(zone_without_dot, "ns1", "A", "3600", "127.0.0.1")
-            transaction.set(zone_without_dot, "ns2", "A", "3600", "127.0.0.1")
+            await transaction.set(zone_without_dot, "ns1", "A", "3600", "127.0.0.1")
+            await transaction.set(zone_without_dot, "ns2", "A", "3600", "127.0.0.1")
 
             soa_data = (
                 f"ns1.{zone_without_dot}. hostmaster.{zone_without_dot}. "
                 f"{serial} 7200 3600 1209600 3600"
             )
 
-            transaction.set(zone_without_dot, "@", "SOA", "3600", soa_data)
-            transaction.commit()
+            await transaction.set(zone_without_dot, "@", "SOA", "3600", soa_data)
+            await transaction.commit()
     
-    def list_zones(self):
+    async def list_zones(self):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
     
-        with get_knot_config_transaction(ctl) as transaction:
-            result = transaction.get(section="zone")
+        async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
+            result = await transaction.get(section="zone")
             if len(result) == 0:
                 return tuple()
             zones_dict: dict[str, Any] = result['zone']
@@ -67,20 +67,20 @@ class ZoneService:
 
             return zones
 
-    def delete_zone(self, name: str):
+    async def delete_zone(self, name: str):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
         
-        with get_knot_config_transaction(ctl) as transaction:
-            transaction.unset("zone", name)
-            transaction.commit()
+        async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
+            await transaction.unset("zone", name)
+            await transaction.commit()
 
-    def export_zone(self, name: str):
+    async def export_zone(self, name: str):
         ctl = KnotCtl()
         ctl.connect(default_knot_path)
 
-        with get_knot_zone_transaction(ctl, name) as transaction:
-            records_data = transaction.get()
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, name) as transaction:
+            records_data = await transaction.get()
         
         if not records_data:
             raise ValueError("Zone is empty")
@@ -106,7 +106,7 @@ class ZoneService:
         return '\n'.join(lines)
 
 
-    def import_zone(self, name: str, content: str):
+    async def import_zone(self, name: str, content: str):
 
         validate_zone_name(name)
 
@@ -114,12 +114,12 @@ class ZoneService:
         ctl.connect(default_knot_path)
 
         # создаём зону
-        with get_knot_config_transaction(ctl) as transaction:
-            transaction.set("zone", name)
-            transaction.commit()
+        async with get_knot_config_transaction(ctl, redis_path, CHANNEL_NAME) as transaction:
+            await transaction.set("zone", name)
+            await transaction.commit()
 
         # добавляем записи
-        with get_knot_zone_transaction(ctl, name) as transaction:
+        async with get_knot_zone_transaction(ctl, redis_path, CHANNEL_NAME, name) as transaction:
             for line in content.splitlines():
                 line = line.strip()
 
@@ -134,9 +134,9 @@ class ZoneService:
                 owner, ttl, _, rtype, *data = parts
                 data = " ".join(data)
 
-                transaction.set(name.rstrip("."), owner, rtype, ttl, data)
+                await transaction.set(name.rstrip("."), owner, rtype, ttl, data)
 
-            transaction.commit()
+            await transaction.commit()
 
 """
 {

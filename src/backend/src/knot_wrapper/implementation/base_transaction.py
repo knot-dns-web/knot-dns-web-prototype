@@ -1,23 +1,23 @@
 from abc import ABC, abstractmethod
 
-from ..transaction_state import TransactionState
+from .transaction_state import TransactionState
 
 class BaseTransaction(ABC):
     def __init__(self) -> None:
         self._state = TransactionState.initial
 
     @property
-    def state(self):
+    async def state(self):
         return self._state
     
     @abstractmethod
-    def open(self):
+    async def open(self):
         self._state = TransactionState.opened
 
     @abstractmethod
-    def commit(self):
+    async def commit(self):
         self._state = TransactionState.committed
 
     @abstractmethod
-    def rollback(self):
+    async def rollback(self):
         self._state = TransactionState.cancelled

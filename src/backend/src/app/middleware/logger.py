@@ -22,7 +22,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             except jwt.PyJWTError:
                 pass
         
-        logger.write_log(
+        await logger.write_log(
             f"{user_str} {request.method} {request.url.path}",
             level="INFO"
         )
@@ -31,14 +31,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             
             # Логируем исходящий запрос
-            logger.write_log(
+            await logger.write_log(
                 f"{user_str} {request.method} {request.url.path} -> {response.status_code}",
                 level="INFO"
             )
             return response
             
         except Exception as e:
-            logger.write_log(
+            await logger.write_log(
                 f"{user_str} {request.method} {request.url.path} ERROR: {str(e)}",
                 level="ERROR"
             )

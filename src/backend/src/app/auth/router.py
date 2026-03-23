@@ -16,8 +16,8 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 @router.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = user_service.get_user(form_data.username)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await user_service.get_user(form_data.username)
     if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
