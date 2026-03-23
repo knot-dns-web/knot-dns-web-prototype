@@ -17,13 +17,10 @@ from .logger.router import router as logger_router
 
 from .middleware.logger import LoggingMiddleware
 
-app = FastAPI(
-    title="Knot DNS Manager",
-    version="1.0.0"
-)
-
-app.add_middleware(LoggingMiddleware)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# app = FastAPI(
+#     title="Knot DNS Manager",
+#     version="1.0.0"
+# )
 
 from ..knot_wrapper.implementation.asynchronous import DNSWorker
 
@@ -53,6 +50,11 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.add_middleware(LoggingMiddleware)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
 
 from .users.service import UserService
 user_service = UserService()
