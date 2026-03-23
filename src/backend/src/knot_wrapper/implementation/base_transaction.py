@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..transaction_state import TransactionState
+from .transaction_state import TransactionState
 
 class BaseTransaction(ABC):
     def __init__(self) -> None:

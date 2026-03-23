@@ -8,12 +8,12 @@ import uuid
 
 from libknot.control import KnotCtl
 
-from ...error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtlError
+from ..error.base_error import KnotError, KnotErrorData, KnotErrorType, KnotCtlError
 
 from .task import DNSCommit, DNSTaskType, DNSCommitType
 
-from ..base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
-from ..base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone, flush_zone
+from .base_operations.config import set_config, unset_config, begin_config, commit_config, abort_config
+from .base_operations.zone import set_zone, unset_zone, begin_zone, commit_zone, abort_zone, backup_zone, restore_zone
 
 class Task(BaseModel):
     id: str
@@ -72,7 +72,6 @@ class DNSWorker:
                 commit_config(ctl)
             else:
                 commit_zone(ctl, zone_name)
-                flush_zone(ctl, zone_name)
             is_committed = True
         finally:
             if not is_committed:
@@ -83,19 +82,20 @@ class DNSWorker:
 
     async def run(self):
         while True:
+            result = await self._redis.brpop( # type: ignore
+                self._channel,
+                timeout=0
+            )
+            _, task_data = result
+            task = Task.model_validate_json(task_data)
+            commit = task.commit
+            task_id = task.id
+
             exception_text = None
             error_type = None
             error_data = None
-            try:
-                result = await self._redis.brpop( # type: ignore
-                    self._channel,
-                    timeout=0
-                )
-                _, task_data = result
-                task = Task.model_validate_json(task_data)
-                commit = task.commit
-                task_id = task.id
 
+            try:
                 self.__apply_commit(commit)
             except KnotCtlError as e:
                 error = KnotError.from_raw_error(e)
@@ -141,7 +141,7 @@ class DNSTaskProducer:
 
         if reply is None:
             await self._redis.delete(task_id)
-            raise TimeoutError("Task queue timed out")
+            raise TimeoutError("Message queue timed out")
         
         _, reply_data = reply
         result = TaskResult.model_validate_json(reply_data)
