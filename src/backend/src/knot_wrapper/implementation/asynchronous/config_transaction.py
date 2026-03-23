@@ -81,7 +81,7 @@ class KnotConfigTransaction(BaseTransaction):
         item: str | None = None
     ):
         task = DNSCommand(
-            type = DNSTaskType.conf_set,
+            type = DNSTaskType.conf_unset,
             data = {
                 "section": section,
                 "identifier": identifier,
