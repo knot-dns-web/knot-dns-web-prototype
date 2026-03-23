@@ -13,11 +13,22 @@ import uuid
 import pytest
 from libknot.control import KnotCtl
 
-from app.zones.core import generate_serial
-from knot_wrapper.implementation.synchronous import (
-    get_knot_config_transaction,
-    get_knot_zone_transaction,
-)
+# Импорт с автоопределением пути
+try:
+    from app.zones.core import generate_serial
+except ImportError:
+    from src.app.zones.core import generate_serial
+
+try:
+    from knot_wrapper.implementation.synchronous import (
+        get_knot_config_transaction,
+        get_knot_zone_transaction,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.synchronous import (
+        get_knot_config_transaction,
+        get_knot_zone_transaction,
+    )
 
 
 def _knot_socket_path() -> str:

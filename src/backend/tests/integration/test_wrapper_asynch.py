@@ -12,35 +12,95 @@ from __future__ import annotations
 
 import asyncio
 import os
+import sys
 import uuid
+from pathlib import Path
 
 import pytest
 import redis.asyncio as aioredis
 from libknot.control import KnotCtl
 
-from app.zones.core import generate_serial
-from knot_wrapper.error.base_error import KnotError
-from knot_wrapper.implementation.asynchronous.config_transaction import (
-    get_knot_config_transaction,
-)
-from knot_wrapper.implementation.asynchronous.message_broker import (
-    DNSWorker,
-    DNSTaskProducer,
-    TaskError,
-)
-from knot_wrapper.implementation.asynchronous.task import (
-    DNSCommand,
-    DNSCommit,
-    DNSCommitType,
-    DNSTaskType,
-)
-from knot_wrapper.implementation.asynchronous.zone_transaction import (
-    get_knot_zone_transaction,
-)
-from knot_wrapper.implementation.synchronous import (
-    get_knot_config_transaction as sync_config_tx,
-    get_knot_zone_transaction as sync_zone_tx,
-)
+# Определяем путь к исходникам
+# В контейнере: /app/src/src -> knot_wrapper напрямую
+# В репозитории: src/backend/src -> knot_wrapper внутри backend
+_CONTAINER_SRC = Path("/app/src/src")
+_REPO_BACKEND_SRC = Path(__file__).resolve().parents[2] / "src" / "backend" / "src"
+
+if _CONTAINER_SRC.exists():
+    _BACKEND_SRC = _CONTAINER_SRC
+else:
+    _BACKEND_SRC = _REPO_BACKEND_SRC
+
+if _BACKEND_SRC.is_dir() and str(_BACKEND_SRC) not in sys.path:
+    sys.path.insert(0, str(_BACKEND_SRC))
+
+# Импорт с автоопределением пути
+try:
+    from app.zones.core import generate_serial
+except ImportError:
+    from src.app.zones.core import generate_serial
+
+try:
+    from knot_wrapper.error.base_error import KnotError
+except ImportError:
+    from src.knot_wrapper.error.base_error import KnotError
+
+try:
+    from knot_wrapper.implementation.asynchronous.config_transaction import (
+        get_knot_config_transaction,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.asynchronous.config_transaction import (
+        get_knot_config_transaction,
+    )
+
+try:
+    from knot_wrapper.implementation.asynchronous.message_broker import (
+        DNSWorker,
+        DNSTaskProducer,
+        TaskError,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.asynchronous.message_broker import (
+        DNSWorker,
+        DNSTaskProducer,
+        TaskError,
+    )
+
+try:
+    from knot_wrapper.implementation.asynchronous.task import (
+        DNSCommand,
+        DNSCommit,
+        DNSCommitType,
+        DNSTaskType,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.asynchronous.task import (
+        DNSCommand,
+        DNSCommit,
+        DNSCommitType,
+        DNSTaskType,
+    )
+
+try:
+    from knot_wrapper.implementation.asynchronous.zone_transaction import (
+        get_knot_zone_transaction,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.asynchronous.zone_transaction import (
+        get_knot_zone_transaction,
+    )
+
+try:
+    from knot_wrapper.implementation.synchronous import (
+        get_knot_config_transaction as sync_config_tx,
+        get_knot_zone_transaction as sync_zone_tx,
+    )
+except ImportError:
+    from src.knot_wrapper.implementation.synchronous import (
+        get_knot_config_transaction as sync_config_tx,
+        get_knot_zone_transaction as sync_zone_tx,
+    )
 
 
 def _knot_socket() -> str:
@@ -48,7 +108,12 @@ def _knot_socket() -> str:
 
 
 def _redis_url() -> str:
-    return os.environ.get("REDIS_URL", "redis://redis:6379/0")
+    # Приоритет: переменная окружения, затем внутренний адрес контейнера, затем fallback
+    env_url = os.environ.get("REDIS_URL", "")
+    if env_url and env_url != "redis://redis:10000/0":
+        return env_url
+    # В docker-compose Redis прокинут на 10000 наружу, но внутри контейнера доступен на 6379
+    return "redis://redis:6379/0"
 
 
 def _require_knot_socket() -> str:
@@ -564,7 +629,10 @@ def test_conf_unset_via_producer():
 
 
 def test_async_package_exports():
-    from knot_wrapper.implementation import asynchronous as m
+    try:
+        from knot_wrapper.implementation import asynchronous as m
+    except ImportError:
+        from src.knot_wrapper.implementation import asynchronous as m
 
     assert m.DNSWorker is DNSWorker
     assert m.get_knot_config_transaction is get_knot_config_transaction

@@ -13,7 +13,17 @@ packages_with_strong_typing = [
 ]
 
 _REPO_ROOT = Path(__file__).resolve().parent
-_BACKEND_SRC = _REPO_ROOT / "src" / "backend" / "src"
+
+# Определяем путь к исходникам
+# В контейнере: /app/src/src -> knot_wrapper напрямую
+# В репозитории: src/backend/src -> knot_wrapper внутри backend
+_CONTAINER_SRC = Path("/app/src/src")
+_REPO_BACKEND_SRC = _REPO_ROOT / "src" / "backend" / "src"
+
+if _CONTAINER_SRC.exists():
+    _BACKEND_SRC = _CONTAINER_SRC
+else:
+    _BACKEND_SRC = _REPO_BACKEND_SRC
 
 # Имена зон из integration/test_api.py — убираем из Knot перед каждым тестом,
 # чтобы create_zone не падал с «уже существует» при повторном прогоне.
@@ -34,7 +44,11 @@ def _cleanup_knot_test_zones() -> None:
         return
     try:
         from libknot.control import KnotCtl
-        from knot_wrapper.implementation.synchronous import get_knot_config_transaction
+        # Импорт в зависимости от структуры
+        try:
+            from knot_wrapper.implementation.synchronous import get_knot_config_transaction
+        except ImportError:
+            from src.knot_wrapper.implementation.synchronous import get_knot_config_transaction
     except Exception:
         return
 
@@ -55,7 +69,11 @@ def _cleanup_knot_test_zones() -> None:
 
 
 def pytest_sessionstart(session):
-    import knot_wrapper.implementation.synchronous
+    _ensure_backend_src_on_path()
+    try:
+        import knot_wrapper.implementation.synchronous
+    except ImportError:
+        import src.knot_wrapper.implementation.synchronous
     beartype_packages(packages_with_strong_typing)
 
 
