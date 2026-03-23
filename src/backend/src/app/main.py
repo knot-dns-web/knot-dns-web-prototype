@@ -15,6 +15,8 @@ from .logger.router import router as logger_router
 from .middleware.logger import LoggingMiddleware
 
 from ..knot_wrapper.implementation import DNSWorker
+from .users.service import UserService
+user_service = UserService()
 
 redis_client = redis.from_url("redis://redis:6379")
 CHANNEL_NAME = "DNSCommitAsync"
@@ -48,8 +50,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 
-from .users.service import UserService
-user_service = UserService()
+
 
 app.include_router(zones_router, prefix="/zones", tags=["zones"])
 app.include_router(records_router, prefix="/records", tags=["records"])
