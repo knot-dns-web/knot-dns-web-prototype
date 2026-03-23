@@ -46,8 +46,6 @@ app = FastAPI(
 app.add_middleware(LoggingMiddleware)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
-
 from .users.service import UserService
 user_service = UserService()
 

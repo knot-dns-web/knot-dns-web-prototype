@@ -4,7 +4,6 @@ export type LogEntry = {
   timestamp: string;
   level: string;
   message: string;
-  user: string;
 };
 
 export async function fetchLogs(): Promise<LogEntry[]> {
