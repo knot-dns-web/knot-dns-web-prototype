@@ -36,6 +36,7 @@ class KnotZoneTransaction(BaseTransaction):
                     tasks = self._task_buffer
                 )
             )
+        self._task_buffer.clear()
         await super().commit()
 
     async def rollback(self):

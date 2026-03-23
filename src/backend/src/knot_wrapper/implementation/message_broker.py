@@ -50,8 +50,10 @@ class DNSWorker:
         is_committed = False
 
         if is_conf:
+            abort_config(ctl)
             begin_config(ctl)
         else:
+            abort_zone(ctl)
             begin_zone(ctl, zone_name)
         try:
             for task in tasks:
@@ -68,11 +70,11 @@ class DNSWorker:
                         backup_zone(ctl, **task.data)
                     case DNSTaskType.zone_restore:
                         restore_zone(ctl, **task.data)
+            is_committed = True
             if is_conf:
                 commit_config(ctl)
             else:
                 commit_zone(ctl, zone_name)
-            is_committed = True
         finally:
             if not is_committed:
                 if is_conf:
@@ -135,6 +137,7 @@ class DNSTaskProducer:
                 task_id,
                 timeout=0,
             )
+
         except asyncio.CancelledError:
             await self._redis.delete(task_id)
             raise
