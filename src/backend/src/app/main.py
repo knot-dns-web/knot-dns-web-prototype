@@ -22,7 +22,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(LoggingMiddleware)
+# app.add_middleware(LoggingMiddleware)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 from ..knot_wrapper.implementation.asynchronous import DNSWorker
@@ -53,6 +53,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.add_middleware(LoggingMiddleware)
 
 from .users.service import UserService
 user_service = UserService()
