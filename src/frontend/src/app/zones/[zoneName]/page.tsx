@@ -12,6 +12,9 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useZones } from "@/lib/hooks/zones";
 import type { DnsRecord } from "@/lib/api/records";
 import type { RecordFormValues } from "@/components/modals/RecordFormModal";
+import { useLogs } from "@/lib/hooks/logs";
+import { HistoryTable } from "@/components/history/HistoryTable";
+import { Modal } from "@/components/ui/Modal";
 
 type TypeGroup = {
   ttl: number;
@@ -36,6 +39,14 @@ export default function ZoneRecordsPage() {
   const [recordModalOpen, setRecordModalOpen] = useState(false);
   const [editing, setEditing] = useState<DnsRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DnsRecord | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const {
+    logs,
+    loading: logsLoading,
+    error: logsError,
+    reload: reloadLogs,
+  } = useLogs(false);
 
   const groupedRecords = useMemo(() => {
     const grouped = new Map<string, Map<string, TypeGroup>>();
@@ -69,6 +80,23 @@ export default function ZoneRecordsPage() {
           })),
       }));
   }, [records, zoneName]);
+
+  const filteredLogs = useMemo(() => {
+    const z1 = zoneName.trim();
+    const z2 = z1.endsWith(".") ? z1 : `${z1}.`;
+    const e1 = encodeURIComponent(z1);
+    const e2 = encodeURIComponent(z2);
+
+    return logs.filter((l) => {
+      const msg = l.message ?? "";
+      return (
+        msg.includes(z1) ||
+        msg.includes(z2) ||
+        msg.includes(e1) ||
+        msg.includes(e2)
+      );
+    });
+  }, [logs, zoneName]);
 
   const handleRecordSubmit = async (
     values: RecordFormValues,
@@ -111,16 +139,29 @@ export default function ZoneRecordsPage() {
             <h1 className="text-[30px] font-bold">{zoneName}</h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setRecordModalOpen(true);
-            }}
-            className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold"
-          >
-            Добавить запись
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setHistoryOpen(true);
+                reloadLogs();
+              }}
+              className="px-4 py-2 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 transition-colors text-sm font-semibold text-slate-200"
+            >
+              История изменений
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null);
+                setRecordModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold"
+            >
+              Добавить запись
+            </button>
+          </div>
         </div>
 
         {loading && (
@@ -142,7 +183,7 @@ export default function ZoneRecordsPage() {
         {!loading && !error && groupedRecords.length > 0 && (
           <div className="space-y-4">
             {groupedRecords.map((domainGroup) => (
-              <div key={domainGroup.owner} className="rounded-lg bg-white/[0.06] p-3">
+              <div key={domainGroup.owner} className="rounded-lg bg-white/6 p-3">
                 <div className="text-lg font-semibold mb-2">{domainGroup.owner}</div>
 
                 <div className="space-y-2">
@@ -164,7 +205,7 @@ export default function ZoneRecordsPage() {
                         {typeGroup.items.map((record, idx) => (
                           <div
                             key={`${record.zone}-${record.owner}-${record.type}-${record.data}-${idx}`}
-                            className="flex items-center justify-between gap-2 rounded-md bg-white/[0.04] px-3 py-2"
+                            className="flex items-center justify-between gap-2 rounded-md bg-white/4 px-3 py-2"
                           >
                             <span className="min-w-0 flex-1 break-all">{record.data}</span>
                             <div className="flex shrink-0 items-center gap-2">
@@ -238,6 +279,30 @@ export default function ZoneRecordsPage() {
         }
         confirmLabel="Удалить"
       />
+
+      <Modal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title="История изменений"
+        size="lg"
+      >
+        <div className="max-h-[60vh] overflow-auto">
+          {logsLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-lg bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : logsError ? (
+            <div className="text-red-400">{logsError}</div>
+          ) : (
+            <HistoryTable
+              logs={filteredLogs}
+              emptyText="В этой зоне нет изменений"
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

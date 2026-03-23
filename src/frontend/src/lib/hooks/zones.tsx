@@ -17,7 +17,8 @@ export function useZones() {
   }, []);
 
   useEffect(() => {
-    loadZones();
+    const id = window.setTimeout(() => loadZones(), 0);
+    return () => window.clearTimeout(id);
   }, [loadZones]);
 
   const addZone = useCallback(async (name: string) => {
