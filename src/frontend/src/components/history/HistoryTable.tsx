@@ -23,7 +23,6 @@ export function HistoryTable({
             <tr className="border-b border-white/10 bg-white/[0.04] text-slate-400">
               <th className="px-4 py-3 font-medium">Время</th>
               <th className="px-4 py-3 font-medium">Уровень</th>
-              <th className="px-4 py-3 font-medium">Пользователь</th>
               <th className="px-4 py-3 font-medium">Сообщение</th>
             </tr>
           </thead>
@@ -37,7 +36,6 @@ export function HistoryTable({
                   {formatTimestamp(l.timestamp)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">{l.level}</td>
-                <td className="px-4 py-3 whitespace-nowrap">{l.user}</td>
                 <td className="px-4 py-3 max-w-[520px] break-all">
                   {l.message}
                 </td>
